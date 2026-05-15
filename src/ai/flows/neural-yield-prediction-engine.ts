@@ -41,12 +41,12 @@ const prompt = ai.definePrompt({
   prompt: `You are a precision agriculture data scientist. Your task is to predict the crop yield for a farm based on environmental parameters.
 
 Analyze the following data:
-- Crop: {{{cropType}}}
-- Area: {{{areaSize}}} acres
-- Soil pH: {{{soilPh}}}
-- Expected Rainfall: {{{expectedRainfall}}} mm
-- Average Temperature: {{{avgTemperature}}}°C
-{{#if historicalYield}}- Historical Yield: {{{historicalYield}}} tons/acre{{/if}}
+- Crop: {{cropType}}
+- Area: {{areaSize}} acres
+- Soil pH: {{soilPh}}
+- Expected Rainfall: {{expectedRainfall}} mm
+- Average Temperature: {{avgTemperature}}°C
+{{#if historicalYield}}- Historical Yield: {{historicalYield}} tons/acre{{/if}}
 
 Calculate a realistic predicted yield and provide a detailed analysis of risks and optimization recommendations. 
 Estimate the market value assuming current global average prices for the crop type.

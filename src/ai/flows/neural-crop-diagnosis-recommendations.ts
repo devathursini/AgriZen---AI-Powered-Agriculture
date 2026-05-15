@@ -87,7 +87,7 @@ If the plant is not healthy, specify the disease/pest/deficiency.
 Provide specific fertilizer recommendations if applicable, and always include organic farming suggestions.
 
 Here is the information:
-{{#if cropType}}Crop Type (for context): {{{cropType}}}
+{{#if cropType}}Crop Type (for context): {{cropType}}
 {{/if}}
 Photo of the plant/leaf: {{media url=photoDataUri}}
 

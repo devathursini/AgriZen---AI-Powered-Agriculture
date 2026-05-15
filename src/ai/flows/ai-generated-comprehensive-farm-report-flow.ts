@@ -151,34 +151,34 @@ REPORT START
 # AgriZen Comprehensive Farm Report
 
 ## Farmer and Farm Details:
-- Farmer: {{{farmerName}}}
-- Farm Location: {{{farmLocation}}}
-- Report Date: {{{reportTimestamp}}}
+- Farmer: {{farmerName}}
+- Farm Location: {{farmLocation}}
+- Report Date: {{reportTimestamp}}
 
 ## Crop Overview:
-- Crop Type: {{{cropType}}}
-- Planting Date: {{{plantingDate}}}
+- Crop Type: {{cropType}}
+- Planting Date: {{plantingDate}}
 
 ## Environmental Conditions:
-- Weather: {{{weatherData.temperature}}}°C, {{{weatherData.humidity}}}% Humidity, {{{weatherData.rainProbability}}}% Rain Prob.
-- Soil: {{{soilData.soilType}}}, pH {{{soilData.phValue}}}, {{{soilData.moistureLevel}}}% Moisture.
+- Weather: {{weatherData.temperature}}°C, {{weatherData.humidity}}% Humidity, {{weatherData.rainProbability}}% Rain Prob.
+- Soil: {{soilData.soilType}}, pH {{soilData.phValue}}, {{soilData.moistureLevel}}% Moisture.
 
 {{#if diseaseDiagnosis}}
 ## Zen Crop Disease Diagnosis:
-- Disease: {{{diseaseDiagnosis.diseaseName}}} ({{{diseaseDiagnosis.severity}}})
-- Confidence: {{{diseaseDiagnosis.confidenceScore}}}%
-- Treatments: {{{#each diseaseDiagnosis.treatmentSuggestions}}}{{{this}}}{{#unless @last}}, {{/unless}}{{{/each}}}
+- Disease: {{diseaseDiagnosis.diseaseName}} ({{diseaseDiagnosis.severity}})
+- Confidence: {{diseaseDiagnosis.confidenceScore}}%
+- Treatments: {{#each diseaseDiagnosis.treatmentSuggestions}}{{this}}{{#unless @last}}, {{/unless}}{{/each}}
 {{/if}}
 
 {{#if yieldPrediction}}
 ## Zen Yield Prediction:
-- Predicted Yield: {{{yieldPrediction.predictedYield}}} {{{yieldPrediction.unit}}}
-- Est. Profit: $ {{{yieldPrediction.profitEstimation}}}
+- Predicted Yield: {{yieldPrediction.predictedYield}} {{yieldPrediction.unit}}
+- Est. Profit: $ {{yieldPrediction.profitEstimation}}
 {{/if}}
 
 {{#if marketInsights}}
 ## Zen Market Insights:
-- Future Price: $ {{{marketInsights.futurePrice}}} per {{{marketInsights.cropUnit}}} (Demand: {{{marketInsights.demandForecast}}})
+- Future Price: $ {{marketInsights.futurePrice}} per {{marketInsights.cropUnit}} (Demand: {{marketInsights.demandForecast}})
 {{/if}}
 
 ## AI Recommendations:
