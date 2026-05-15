@@ -1,382 +1,138 @@
 
 "use client";
 
-import { useState, useMemo } from "react";
-import { 
-  ResponsiveContainer, 
-  AreaChart, 
-  Area,
-  CartesianGrid,
-  XAxis,
-  YAxis,
-  Tooltip as RechartsTooltip
-} from "recharts";
-import { 
-  CloudSun, 
-  Droplet, 
-  Thermometer, 
-  Activity, 
-  TrendingUp,
-  Dna,
-  Bot,
-  ShoppingCart,
-  Loader2,
-  FileText,
-  LogIn,
-  ExternalLink,
-  ChevronLeft,
-  ChevronRight
-} from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import React, { useEffect } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useUser } from "@/firebase";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
-import Image from "next/image";
-import Link from "next/link";
-import DashboardLayout from "./(dashboard)/layout";
-import { aiGeneratedComprehensiveFarmReport } from "@/ai/flows/ai-generated-comprehensive-farm-report-flow";
-import { useToast } from "@/hooks/use-toast";
-import { useFirestore, useUser, useAuth, useCollection } from "@/firebase";
-import { collection, addDoc, serverTimestamp, query, where, orderBy, limit } from "firebase/firestore";
-import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
-import { errorEmitter } from "@/firebase/error-emitter";
-import { FirestorePermissionError } from "@/firebase/errors";
-import { PlaceHolderImages } from "@/lib/placeholder-images";
+import { Sprout, ArrowRight, ShieldCheck, Zap, Bot, BarChart3 } from "lucide-react";
 
-const chartData = [
-  { name: "Mon", health: 85, yield: 65 },
-  { name: "Tue", health: 88, yield: 70 },
-  { name: "Wed", health: 75, yield: 68 },
-  { name: "Thu", health: 92, yield: 80 },
-  { name: "Fri", health: 90, yield: 85 },
-  { name: "Sat", health: 95, yield: 90 },
-  { name: "Sun", health: 88, yield: 82 },
-];
+export default function LandingPage() {
+  const { user, loading } = useUser();
+  const router = useRouter();
 
-const StatCard = ({ icon: Icon, title, value, sub, trend }: any) => (
-  <Card className="glass neon-border relative overflow-hidden">
-    <CardContent className="p-6">
-      <div className="flex items-center justify-between">
-        <div className="space-y-1">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{title}</p>
-          <p className="font-headline text-3xl font-bold">{value}</p>
-          <p className="text-xs text-muted-foreground">{sub}</p>
-        </div>
-        <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
-          <Icon className="h-6 w-6 text-primary" />
+  useEffect(() => {
+    if (!loading && user) {
+      router.push("/dashboard");
+    }
+  }, [user, loading, router]);
+
+  if (loading) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <Sprout className="h-12 w-12 animate-bounce text-primary" />
+          <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Initializing AgriZen Neural Link...</p>
         </div>
       </div>
-      {trend && (
-        <div className="mt-4 flex items-center gap-1">
-          <TrendingUp className="h-3 w-3 text-primary" />
-          <span className="text-xs font-bold text-primary">{trend} increase</span>
-        </div>
-      )}
-    </CardContent>
-  </Card>
-);
-
-export default function Dashboard() {
-  const [isGenerating, setIsGenerating] = useState(false);
-  const { toast } = useToast();
-  const { user, loading: userLoading } = useUser();
-  const auth = useAuth();
-  const db = useFirestore();
-
-  const heroImages = useMemo(() => 
-    PlaceHolderImages.filter(img => ["hero-farm", "drone-shot", "smart-irrigation", "wheat-harvest", "greenhouse-tech"].includes(img.id)),
-  []);
-
-  const reportsQuery = useMemo(() => {
-    if (!db || !user) return null;
-    return query(
-      collection(db, "reports"),
-      where("userId", "==", user.uid),
-      orderBy("createdAt", "desc"),
-      limit(3)
     );
-  }, [db, user]);
-
-  const { data: recentReports, loading: reportsLoading } = useCollection(reportsQuery);
-
-  const handleSignIn = async () => {
-    const provider = new GoogleAuthProvider();
-    try {
-      await signInWithPopup(auth, provider);
-    } catch (error: any) {
-      const errorMsg = error.message?.toLowerCase() || "";
-      if (errorMsg.includes('identitytoolkit') || error.code?.includes('api-blocked')) {
-        toast({
-          variant: "destructive",
-          title: "Setup Required",
-          description: "Authentication service is blocked. Please follow the instructions in the sidebar to enable the Identity Toolkit API.",
-        });
-      } else {
-        toast({
-          variant: "destructive",
-          title: "Sign In Failed",
-          description: error.message || "Could not complete authentication.",
-        });
-      }
-    }
-  };
-
-  const handleGenerateReport = async () => {
-    if (!user) {
-      toast({
-        title: "Authentication Required",
-        description: "Please sign in to generate and save reports.",
-        action: (
-          <Button variant="outline" size="sm" onClick={handleSignIn}>
-            <LogIn className="mr-2 h-4 w-4" /> Sign In
-          </Button>
-        )
-      });
-      return;
-    }
-
-    setIsGenerating(true);
-    try {
-      const cropType = "AgriZen Bio-Tomato";
-      const result = await aiGeneratedComprehensiveFarmReport({
-        farmerName: user.displayName || "AgriZen Farmer",
-        farmLocation: "Zen Sector 1, AgriZen Prime",
-        cropType: cropType,
-        plantingDate: "2024-01-15",
-        weatherData: {
-          temperature: 24.5,
-          humidity: 62,
-          rainProbability: 12
-        },
-        soilData: {
-          soilType: "Zen-Loam",
-          phValue: 6.2,
-          moistureLevel: 58
-        },
-        reportTimestamp: new Date().toISOString()
-      });
-
-      const reportData = {
-        userId: user.uid,
-        reportUrl: result.reportUrl,
-        cropType: cropType,
-        timestamp: new Date().toISOString(),
-        createdAt: serverTimestamp()
-      };
-
-      addDoc(collection(db, "reports"), reportData)
-        .catch(async (error) => {
-          const permissionError = new FirestorePermissionError({
-            path: "reports",
-            operation: "create",
-            requestResourceData: reportData,
-          });
-          errorEmitter.emit('permission-error', permissionError);
-        });
-
-      toast({
-        title: "Report Generated",
-        description: "Your AgriZen AI farm report is ready and has been saved.",
-        action: (
-          <Button variant="outline" size="sm" asChild>
-            <a href={result.reportUrl} target="_blank" rel="noopener noreferrer">View PDF</a>
-          </Button>
-        )
-      });
-    } catch (err: any) {
-      console.error(err);
-      toast({
-        variant: "destructive",
-        title: "Generation Failed",
-        description: "An unexpected error occurred during report generation."
-      });
-    } finally {
-      setIsGenerating(false);
-    }
-  };
+  }
 
   return (
-    <DashboardLayout>
-      <div className="space-y-8">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div>
-            <h1 className="font-headline text-4xl font-bold text-foreground">
-              AgriZen <span className="text-primary">Control Hub</span>
-            </h1>
-            <p className="text-muted-foreground">Autonomous Farming Ecosystem Live Status</p>
-          </div>
+    <div className="min-h-screen bg-background selection:bg-primary selection:text-primary-foreground">
+      {/* Navbar */}
+      <nav className="fixed top-0 z-50 w-full border-b border-white/5 bg-background/80 backdrop-blur-md">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 h-20">
           <div className="flex items-center gap-3">
-            <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20 px-4 py-1">
-              <Activity className="mr-2 h-3 w-3 animate-pulse" /> Live
-            </Badge>
-            <Button 
-              onClick={handleGenerateReport} 
-              disabled={isGenerating || userLoading}
-              className="bg-primary text-primary-foreground hover:bg-primary/90 font-bold min-w-[160px] neon-glow"
-            >
-              {isGenerating ? (
-                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Analyzing...</>
-              ) : (
-                <><FileText className="mr-2 h-4 w-4" /> Generate Report</>
-              )}
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary neon-glow text-primary-foreground">
+              <Sprout className="h-6 w-6" />
+            </div>
+            <span className="font-headline text-xl font-bold tracking-tight text-primary">
+              AgriZen AI
+            </span>
+          </div>
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" asChild className="text-muted-foreground hover:text-primary">
+              <Link href="/login">Sign In</Link>
+            </Button>
+            <Button className="bg-primary text-primary-foreground font-bold neon-glow" asChild>
+              <Link href="/login">Get Started</Link>
             </Button>
           </div>
         </div>
+      </nav>
 
-        {/* Hero Image Carousel */}
-        <section className="relative group">
-          <Carousel className="w-full" opts={{ loop: true }}>
-            <CarouselContent>
-              {heroImages.map((img) => (
-                <CarouselItem key={img.id}>
-                  <div className="relative aspect-[2.5/1] w-full overflow-hidden rounded-2xl border border-white/5 bg-card">
-                    <div className="scanline" />
-                    <Image
-                      src={img.imageUrl}
-                      alt={img.description}
-                      fill
-                      className="object-cover transition-transform duration-1000 group-hover:scale-105"
-                      data-ai-hint={img.imageHint}
-                      priority={img.id === "hero-farm"}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent" />
-                    <div className="absolute bottom-8 left-8 space-y-2">
-                      <div className="flex items-center gap-2">
-                        <Badge className="bg-primary text-primary-foreground font-bold neon-glow">Zen Vision Live</Badge>
-                        <Badge variant="outline" className="bg-black/40 border-white/10 text-white backdrop-blur-md">Node: Sector 7G</Badge>
-                      </div>
-                      <h3 className="text-3xl font-bold font-headline text-white drop-shadow-2xl">{img.description}</h3>
-                    </div>
-                  </div>
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            <div className="absolute top-1/2 -translate-y-1/2 left-4">
-              <CarouselPrevious className="relative left-0 translate-y-0 opacity-0 group-hover:opacity-100 transition-opacity bg-black/50 border-white/10 text-white hover:bg-primary hover:text-primary-foreground" />
-            </div>
-            <div className="absolute top-1/2 -translate-y-1/2 right-4">
-              <CarouselNext className="relative right-0 translate-y-0 opacity-0 group-hover:opacity-100 transition-opacity bg-black/50 border-white/10 text-white hover:bg-primary hover:text-primary-foreground" />
-            </div>
-          </Carousel>
-        </section>
-
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard icon={Thermometer} title="Avg. Temp" value="24.5°C" sub="Optimal Range" trend="+2.4%" />
-          <StatCard icon={Droplet} title="Soil Moisture" value="62%" sub="Slightly Low" trend="-0.5%" />
-          <StatCard icon={CloudSun} title="Solar Intensity" value="850 W/m²" sub="High Efficiency" trend="+12%" />
-          <StatCard icon={Activity} title="Yield Index" value="94.2" sub="Record Season" trend="+18.5%" />
-        </div>
-
-        <div className="grid gap-6 lg:grid-cols-7">
-          <Card className="glass lg:col-span-4 border-white/5">
-            <CardHeader>
-              <CardTitle className="font-headline">Ecosystem Vitality</CardTitle>
-              <CardDescription>Real-time health and yield metrics across all sectors</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[300px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={chartData}>
-                    <defs>
-                      <linearGradient id="colorHealth" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
-                        <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
-                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: 'rgba(255,255,255,0.5)', fontSize: 12}} />
-                    <YAxis axisLine={false} tickLine={false} tick={{fill: 'rgba(255,255,255,0.5)', fontSize: 12}} />
-                    <RechartsTooltip 
-                      contentStyle={{backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px'}}
-                      itemStyle={{color: 'hsl(var(--primary))'}}
-                    />
-                    <Area type="monotone" dataKey="health" stroke="hsl(var(--primary))" fillOpacity={1} fill="url(#colorHealth)" />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="glass lg:col-span-3 border-white/5">
-            <CardHeader>
-              <CardTitle className="font-headline">Recent Intelligence</CardTitle>
-              <CardDescription>Your latest AI-generated farm reports</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {reportsLoading ? (
-                <div className="flex items-center justify-center py-10">
-                  <Loader2 className="h-6 w-6 text-primary animate-spin" />
-                </div>
-              ) : recentReports && recentReports.length > 0 ? (
-                recentReports.map((report: any) => (
-                  <div key={report.id} className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/5 group hover:border-primary/30 transition-all">
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20">
-                        <FileText className="h-5 w-5 text-primary" />
-                      </div>
-                      <div className="space-y-0.5">
-                        <p className="text-sm font-bold truncate max-w-[150px]">{report.cropType}</p>
-                        <p className="text-[10px] text-muted-foreground uppercase">Report Saved</p>
-                      </div>
-                    </div>
-                    <Button variant="ghost" size="icon" asChild className="text-primary hover:bg-primary/10">
-                      <a href={report.reportUrl} target="_blank" rel="noopener noreferrer">
-                        <ExternalLink className="h-4 w-4" />
-                      </a>
-                    </Button>
-                  </div>
-                ))
-              ) : (
-                <div className="text-center py-10">
-                  <p className="text-sm text-muted-foreground">No reports generated yet.</p>
-                </div>
-              )}
-              <Button variant="outline" asChild className="w-full border-white/10 hover:bg-white/5">
-                <Link href="/reports">View All Reports</Link>
+      {/* Hero Section */}
+      <section className="relative overflow-hidden pt-32 pb-20 lg:pt-48 lg:pb-32">
+        <div className="scanline" />
+        <div className="container relative mx-auto px-6">
+          <div className="flex flex-col items-center text-center space-y-8">
+            <Badge variant="outline" className="animate-pulse border-primary/20 bg-primary/5 px-4 py-1 text-primary">
+              AgriZen v4.0 is Live
+            </Badge>
+            <h1 className="font-headline text-5xl font-bold tracking-tight text-foreground sm:text-7xl lg:max-w-4xl">
+              The Future of <span className="text-primary">Autonomous</span> Precision Agriculture
+            </h1>
+            <p className="max-w-2xl text-lg text-muted-foreground leading-relaxed">
+              AgriZen AI leverages neural computer vision, autonomous drone fleets, and predictive analytics to transform your farm into a hyper-efficient, Zen-stabilized ecosystem.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 pt-4">
+              <Button size="lg" className="h-14 px-8 bg-primary text-primary-foreground font-bold text-lg neon-glow" asChild>
+                <Link href="/login">
+                  Enter the Ecosystem <ArrowRight className="ml-2 h-5 w-5" />
+                </Link>
               </Button>
-            </CardContent>
-          </Card>
+              <Button size="lg" variant="outline" className="h-14 px-8 border-white/10 hover:bg-white/5 text-lg" asChild>
+                <Link href="/marketplace">Explore Nexus</Link>
+              </Button>
+            </div>
+          </div>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-3">
-          <Link href="/diagnosis" className="group">
-            <Card className="glass h-full hover:border-primary/50 transition-all overflow-hidden relative">
-              <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-              <CardHeader>
-                <Dna className="h-8 w-8 text-primary mb-2" />
-                <CardTitle className="font-headline">Zen Diagnosis</CardTitle>
-                <CardDescription>Scan crops using high-precision computer vision AI.</CardDescription>
-              </CardHeader>
-            </Card>
-          </Link>
-          <Link href="/assistant" className="group">
-            <Card className="glass h-full hover:border-primary/50 transition-all overflow-hidden relative">
-              <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-              <CardHeader>
-                <Bot className="h-8 w-8 text-primary mb-2" />
-                <CardTitle className="font-headline">AgriZen AI Assistant</CardTitle>
-                <CardDescription>Talk to your digital agronomist for expert advice.</CardDescription>
-              </CardHeader>
-            </Card>
-          </Link>
-          <Link href="/marketplace" className="group">
-            <Card className="glass h-full hover:border-primary/50 transition-all overflow-hidden relative">
-              <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-              <CardHeader>
-                <ShoppingCart className="h-8 w-8 text-primary mb-2" />
-                <CardTitle className="font-headline">AgriZen Nexus</CardTitle>
-                <CardDescription>Access the futuristic marketplace for smart tools.</CardDescription>
-              </CardHeader>
-            </Card>
-          </Link>
+        {/* Decorative elements */}
+        <div className="absolute top-1/2 left-1/2 -z-10 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 bg-primary/10 blur-[120px] rounded-full" />
+      </section>
+
+      {/* Features Grid */}
+      <section className="py-20 bg-black/20 border-y border-white/5">
+        <div className="container mx-auto px-6">
+          <div className="grid gap-8 md:grid-cols-3">
+            {[
+              {
+                icon: ShieldCheck,
+                title: "Neural Shielding",
+                desc: "Real-time atmospheric monitoring and autonomous threat mitigation."
+              },
+              {
+                icon: Bot,
+                title: "Zen AI Assistant",
+                desc: "Multilingual agronomist assistant available 24/7 in Tamil and English."
+              },
+              {
+                icon: BarChart3,
+                title: "Yield Prediction",
+                desc: "Advanced neural engines forecasting harvests with 98% confidence."
+              }
+            ].map((feature, i) => (
+              <div key={i} className="glass group p-8 rounded-2xl border-white/5 hover:border-primary/30 transition-all">
+                <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-xl bg-primary/10 border border-primary/20 text-primary group-hover:scale-110 transition-transform">
+                  <feature.icon className="h-7 w-7" />
+                </div>
+                <h3 className="text-xl font-bold font-headline mb-3">{feature.title}</h3>
+                <p className="text-muted-foreground leading-relaxed">{feature.desc}</p>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
-    </DashboardLayout>
+      </section>
+
+      {/* Footer */}
+      <footer className="py-12 border-t border-white/5">
+        <div className="container mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6 text-sm text-muted-foreground">
+          <div className="flex items-center gap-2">
+            <Sprout className="h-4 w-4 text-primary" />
+            <span>&copy; 2024 AgriZen AI Ecosystem. All rights reserved.</span>
+          </div>
+          <div className="flex items-center gap-8">
+            <Link href="#" className="hover:text-primary transition-colors">Security Protocol</Link>
+            <Link href="#" className="hover:text-primary transition-colors">Neural Documentation</Link>
+            <Link href="#" className="hover:text-primary transition-colors">Support Hub</Link>
+          </div>
+        </div>
+      </footer>
+    </div>
   );
 }

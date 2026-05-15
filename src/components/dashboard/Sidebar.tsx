@@ -1,7 +1,7 @@
 
 "use client";
 
-import Link from "next/navigation";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { 
   LayoutDashboard, 
@@ -35,7 +35,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import React, { useState } from "react";
 
 const menuItems = [
-  { icon: LayoutDashboard, label: "Dashboard", href: "/" },
+  { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
   { icon: Dna, label: "Crop Diagnosis", href: "/diagnosis" },
   { icon: FileText, label: "Reports", href: "/reports" },
   { icon: Plane, label: "Drone Control", href: "/drones" },
@@ -97,14 +97,14 @@ export function Sidebar() {
 
   return (
     <div className="flex h-screen w-64 flex-col bg-sidebar border-r border-sidebar-border/50">
-      <div className="flex h-20 items-center gap-3 px-6">
+      <Link href="/" className="flex h-20 items-center gap-3 px-6 hover:opacity-80 transition-opacity">
         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary neon-glow text-primary-foreground">
           <Sprout className="h-6 w-6" />
         </div>
         <span className="font-headline text-xl font-bold tracking-tight text-primary">
           AgriZen AI
         </span>
-      </div>
+      </Link>
 
       <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4">
         {authError === "identity-blocked" && (
@@ -153,7 +153,7 @@ export function Sidebar() {
           {menuItems.map((item) => {
             const isActive = pathname === item.href;
             return (
-              <a
+              <Link
                 key={item.href}
                 href={item.href}
                 className={cn(
@@ -168,7 +168,7 @@ export function Sidebar() {
                   isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
                 )} />
                 {item.label}
-              </a>
+              </Link>
             );
           })}
         </nav>
@@ -207,8 +207,9 @@ export function Sidebar() {
               onClick={handleSignIn}
               variant="outline" 
               className="w-full border-primary/20 text-primary hover:bg-primary/10 font-bold"
+              asChild
             >
-              <LogIn className="mr-2 h-4 w-4" /> Sign In
+              <Link href="/login"><LogIn className="mr-2 h-4 w-4" /> Sign In</Link>
             </Button>
             <p className="text-[9px] text-muted-foreground text-center px-2">
               Sync farm data to the AgriZen cloud.
