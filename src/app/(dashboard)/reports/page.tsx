@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { 
   FileText, 
   Download, 
@@ -21,6 +21,21 @@ import { useCollection, useFirestore, useUser } from "@/firebase";
 import { collection, query, where, orderBy, deleteDoc, doc } from "firebase/firestore";
 import { format } from "date-fns";
 
+const ReportDate = ({ timestamp }: { timestamp: string }) => {
+  const [formattedDate, setFormattedDate] = useState<string | null>(null);
+
+  useEffect(() => {
+    try {
+      setFormattedDate(format(new Date(timestamp), 'PPP p'));
+    } catch (e) {
+      setFormattedDate('Invalid Date');
+    }
+  }, [timestamp]);
+
+  if (!formattedDate) return <span className="animate-pulse bg-white/5 h-3 w-24 rounded" />;
+  return <>{formattedDate}</>;
+};
+
 export default function ReportsPage() {
   const { user } = useUser();
   const db = useFirestore();
@@ -30,7 +45,7 @@ export default function ReportsPage() {
     return query(
       collection(db, "reports"),
       where("userId", "==", user.uid),
-      orderBy("timestamp", "desc")
+      orderBy("createdAt", "desc")
     );
   }, [db, user]);
 
@@ -86,7 +101,7 @@ export default function ReportsPage() {
                       </div>
                       <div className="flex items-center gap-3 text-xs text-muted-foreground">
                         <span className="flex items-center gap-1">
-                          <Calendar className="h-3 w-3" /> {format(new Date(report.timestamp), 'PPP p')}
+                          <Calendar className="h-3 w-3" /> <ReportDate timestamp={report.timestamp} />
                         </span>
                         <span className="h-1 w-1 rounded-full bg-white/10" />
                         <span>PDF Format</span>
@@ -117,7 +132,7 @@ export default function ReportsPage() {
               <p className="text-muted-foreground max-w-sm mx-auto">Generate your first comprehensive farm report from the dashboard to see it here.</p>
             </div>
             <Button asChild className="bg-primary text-primary-foreground font-bold neon-glow px-8">
-              <a href="/">Go to Dashboard</a>
+              <Link href="/">Go to Dashboard</Link>
             </Button>
           </Card>
         )}

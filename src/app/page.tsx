@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { 
   ResponsiveContainer, 
   AreaChart, 
@@ -23,7 +23,9 @@ import {
   ShoppingCart,
   Loader2,
   FileText,
-  LogIn
+  LogIn,
+  ExternalLink,
+  Calendar
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -33,13 +35,13 @@ import DashboardLayout from "./(dashboard)/layout";
 import { cn } from "@/lib/utils";
 import { aiGeneratedComprehensiveFarmReport } from "@/ai/flows/ai-generated-comprehensive-farm-report-flow";
 import { useToast } from "@/hooks/use-toast";
-import { useFirestore, useUser, useAuth } from "@/firebase";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { useFirestore, useUser, useAuth, useCollection } from "@/firebase";
+import { collection, addDoc, serverTimestamp, query, where, orderBy, limit } from "firebase/firestore";
 import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
 
-const data = [
+const chartData = [
   { name: "Mon", health: 85, yield: 65 },
   { name: "Tue", health: 88, yield: 70 },
   { name: "Wed", health: 75, yield: 68 },
@@ -78,6 +80,18 @@ export default function Dashboard() {
   const { user, loading: userLoading } = useUser();
   const auth = useAuth();
   const db = useFirestore();
+
+  const reportsQuery = useMemo(() => {
+    if (!db || !user) return null;
+    return query(
+      collection(db, "reports"),
+      where("userId", "==", user.uid),
+      orderBy("createdAt", "desc"),
+      limit(3)
+    );
+  }, [db, user]);
+
+  const { data: recentReports, loading: reportsLoading } = useCollection(reportsQuery);
 
   const handleSignIn = async () => {
     const provider = new GoogleAuthProvider();
@@ -152,17 +166,10 @@ export default function Dashboard() {
       });
     } catch (err: any) {
       console.error(err);
-      const isApiKeyError = err.message?.includes("API key") || err.message?.includes("400");
-      const isBusyError = err.message?.includes("503") || err.message?.includes("UNAVAILABLE") || err.message?.includes("high demand");
-
       toast({
         variant: "destructive",
-        title: isApiKeyError ? "Configuration Required" : (isBusyError ? "AI Service Busy" : "Generation Failed"),
-        description: isApiKeyError 
-          ? "Please replace your API key in the .env file."
-          : (isBusyError 
-              ? "Google's AI servers are under heavy load. Please try generating the report again in a few moments." 
-              : "An unexpected error occurred during report generation.")
+        title: "Generation Failed",
+        description: "An unexpected error occurred during report generation."
       });
     } finally {
       setIsGenerating(false);
@@ -172,7 +179,6 @@ export default function Dashboard() {
   return (
     <DashboardLayout>
       <div className="space-y-8">
-        {/* Header */}
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <h1 className="font-headline text-4xl font-bold text-foreground">
@@ -198,7 +204,6 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Stats Grid */}
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard icon={Thermometer} title="Avg. Temp" value="24.5°C" sub="Optimal Range" trend="+2.4%" />
           <StatCard icon={Droplet} title="Soil Moisture" value="62%" sub="Slightly Low" trend="-0.5%" />
@@ -215,7 +220,7 @@ export default function Dashboard() {
             <CardContent>
               <div className="h-[300px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={data}>
+                  <AreaChart data={chartData}>
                     <defs>
                       <linearGradient id="colorHealth" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
@@ -238,32 +243,40 @@ export default function Dashboard() {
 
           <Card className="glass lg:col-span-3 border-white/5">
             <CardHeader>
-              <CardTitle className="font-headline">Autonomous Alerts</CardTitle>
-              <CardDescription>Priority notifications from AI sensors</CardDescription>
+              <CardTitle className="font-headline">Recent Intelligence</CardTitle>
+              <CardDescription>Your latest AI-generated farm reports</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {[
-                { title: "Low pH in Sector 7", type: "critical", time: "2 mins ago" },
-                { title: "Irrigation Schedule Optimized", type: "info", time: "15 mins ago" },
-                { title: "Possible Pest Activity - Drone Scan", type: "warning", time: "1 hour ago" },
-                { title: "Energy Reservoir at 98%", type: "success", time: "3 hours ago" },
-              ].map((alert, i) => (
-                <div key={i} className="flex items-start gap-4 p-3 rounded-lg bg-white/5 border border-white/5 group hover:border-primary/30 transition-all cursor-pointer">
-                  <div className={cn(
-                    "mt-1 h-2 w-2 rounded-full",
-                    alert.type === 'critical' ? 'bg-destructive animate-pulse' :
-                    alert.type === 'warning' ? 'bg-accent' :
-                    alert.type === 'success' ? 'bg-primary' : 'bg-blue-500'
-                  )} />
-                  <div className="flex-1 space-y-1">
-                    <p className="text-sm font-medium">{alert.title}</p>
-                    <p className="text-xs text-muted-foreground">{alert.time}</p>
-                  </div>
-                  <ArrowRight className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-all text-primary" />
+              {reportsLoading ? (
+                <div className="flex items-center justify-center py-10">
+                  <Loader2 className="h-6 w-6 text-primary animate-spin" />
                 </div>
-              ))}
-              <Button variant="outline" className="w-full border-white/10 hover:bg-white/5">
-                View All Systems
+              ) : recentReports && recentReports.length > 0 ? (
+                recentReports.map((report: any) => (
+                  <div key={report.id} className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/5 group hover:border-primary/30 transition-all">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20">
+                        <FileText className="h-5 w-5 text-primary" />
+                      </div>
+                      <div className="space-y-0.5">
+                        <p className="text-sm font-bold truncate max-w-[150px]">{report.cropType}</p>
+                        <p className="text-[10px] text-muted-foreground uppercase">Report Saved</p>
+                      </div>
+                    </div>
+                    <Button variant="ghost" size="icon" asChild className="text-primary hover:bg-primary/10">
+                      <a href={report.reportUrl} target="_blank" rel="noopener noreferrer">
+                        <ExternalLink className="h-4 w-4" />
+                      </a>
+                    </Button>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-10">
+                  <p className="text-sm text-muted-foreground">No reports generated yet.</p>
+                </div>
+              )}
+              <Button variant="outline" asChild className="w-full border-white/10 hover:bg-white/5">
+                <Link href="/reports">View All Reports</Link>
               </Button>
             </CardContent>
           </Card>
@@ -290,13 +303,13 @@ export default function Dashboard() {
               </CardHeader>
             </Card>
           </Link>
-          <Link href="/reports" className="group">
+          <Link href="/marketplace" className="group">
             <Card className="glass h-full hover:border-primary/50 transition-all overflow-hidden relative">
               <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
               <CardHeader>
-                <FileText className="h-8 w-8 text-primary mb-2" />
-                <CardTitle className="font-headline">Farm Reports</CardTitle>
-                <CardDescription>View and manage all your saved agricultural analysis.</CardDescription>
+                <ShoppingCart className="h-8 w-8 text-primary mb-2" />
+                <CardTitle className="font-headline">Agri-Nexus</CardTitle>
+                <CardDescription>Access the futuristic marketplace for smart tools.</CardDescription>
               </CardHeader>
             </Card>
           </Link>
