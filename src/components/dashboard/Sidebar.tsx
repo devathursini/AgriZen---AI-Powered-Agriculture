@@ -62,33 +62,26 @@ export function Sidebar() {
     try {
       await signInWithPopup(auth, provider);
     } catch (error: any) {
-      // Avoid triggering Next.js error overlay by not using console.error for caught auth errors
       const errorMsg = error.message?.toLowerCase() || "";
       const isIdentityBlocked = errorMsg.includes('identitytoolkit') || 
                                 error.code?.includes('api-blocked') ||
-                                errorMsg.includes('blocked');
+                                errorMsg.includes('blocked') ||
+                                errorMsg.includes('requests-to-this-api-identitytoolkit');
       
       if (isIdentityBlocked) {
         setAuthError("identity-blocked");
         toast({
           variant: "destructive",
-          title: "Setup Required",
-          description: "Authentication service is blocked. Follow the steps in the sidebar to fix this.",
+          title: "Critical Setup Required",
+          description: "Authentication is blocked. Please use the links in the sidebar to enable the service.",
         });
         return;
-      }
-
-      let message = "Could not complete sign in.";
-      if (error.code === 'auth/auth-domain-config-required') {
-        message = "Firebase Auth is not fully configured. Check your Auth Domain.";
-      } else if (error.code === 'auth/operation-not-allowed') {
-        message = "Google Sign-In is not enabled in your Firebase Console.";
       }
 
       toast({
         variant: "destructive",
         title: "Authentication Error",
-        description: message,
+        description: error.message || "Could not complete sign in.",
       });
     }
   };
@@ -115,40 +108,41 @@ export function Sidebar() {
       <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4">
         {authError === "identity-blocked" && (
           <Alert variant="destructive" className="bg-destructive/10 border-destructive/20 mb-4 animate-in fade-in slide-in-from-top-4 duration-500">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle className="text-xs font-bold uppercase tracking-wider">Fix Authentication</AlertTitle>
-            <AlertDescription className="text-[10px] space-y-3 mt-1">
-              <p>The "Identity Toolkit" error means you need to enable 3 things manually:</p>
-              <div className="space-y-3">
-                <div className="p-2 bg-black/20 rounded border border-destructive/10 space-y-2">
-                  <a 
-                    href={`https://console.firebase.google.com/project/${projectId}/authentication/providers`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-between text-destructive underline font-bold group"
-                  >
-                    1. Enable Google Provider <ExternalLink className="h-2 w-2 opacity-50 group-hover:opacity-100" />
-                  </a>
+            <AlertCircle className="h-4 w-4 shrink-0" />
+            <div className="space-y-2">
+              <AlertTitle className="text-xs font-bold uppercase tracking-wider">PROJECT SETUP REQUIRED</AlertTitle>
+              <AlertDescription className="text-[10px] leading-normal">
+                <p className="mb-2 font-bold text-destructive">Authentication is currently disabled.</p>
+                <div className="space-y-2 p-3 bg-black/40 rounded border border-destructive/20">
+                  <p className="text-[9px] text-muted-foreground mb-1">STEP 1:</p>
                   <a 
                     href={`https://console.cloud.google.com/apis/library/identitytoolkit.googleapis.com?project=${projectId}`} 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="flex items-center justify-between text-destructive underline font-bold group"
+                    className="flex items-center justify-between text-destructive underline font-bold group hover:text-white transition-colors"
                   >
-                    2. Enable Identity Toolkit API <ExternalLink className="h-2 w-2 opacity-50 group-hover:opacity-100" />
+                    Enable Identity API <ExternalLink className="h-2.5 w-2.5" />
                   </a>
-                  <p className="font-medium text-muted-foreground">3. Ensure API Key restrictions are "None" in Cloud Console.</p>
+                  <p className="text-[9px] text-muted-foreground mb-1 mt-2">STEP 2:</p>
+                  <a 
+                    href={`https://console.firebase.google.com/project/${projectId}/authentication/providers`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-between text-destructive underline font-bold group hover:text-white transition-colors"
+                  >
+                    Enable Google Sign-In <ExternalLink className="h-2.5 w-2.5" />
+                  </a>
                 </div>
                 <Button 
                   size="sm" 
                   variant="outline" 
-                  className="w-full text-[9px] h-7 border-destructive/20 hover:bg-destructive/20"
+                  className="w-full text-[9px] h-8 mt-3 border-destructive/40 hover:bg-destructive text-white"
                   onClick={() => window.location.reload()}
                 >
-                  <RefreshCw className="mr-1 h-3 w-3" /> Refresh Browser
+                  <RefreshCw className="mr-1 h-3 w-3" /> Click Here After Enabling
                 </Button>
-              </div>
-            </AlertDescription>
+              </AlertDescription>
+            </div>
           </Alert>
         )}
 
@@ -171,9 +165,6 @@ export function Sidebar() {
                   isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
                 )} />
                 {item.label}
-                {isActive && (
-                  <div className="ml-auto h-1.5 w-1.5 rounded-full bg-primary neon-glow" />
-                )}
               </Link>
             );
           })}
@@ -199,15 +190,13 @@ export function Sidebar() {
                 <p className="text-[10px] text-muted-foreground truncate">{user.email}</p>
               </div>
             </div>
-            <div className="space-y-1">
-              <button 
-                onClick={handleSignOut}
-                className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all"
-              >
-                <LogOut className="h-5 w-5" />
-                Logout
-              </button>
-            </div>
+            <button 
+              onClick={handleSignOut}
+              className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all"
+            >
+              <LogOut className="h-5 w-5" />
+              Logout
+            </button>
           </div>
         ) : (
           <div className="space-y-2">
@@ -218,11 +207,9 @@ export function Sidebar() {
             >
               <LogIn className="mr-2 h-4 w-4" /> Sign In
             </Button>
-            <div className="px-3">
-              <p className="text-[9px] text-muted-foreground text-center leading-relaxed">
-                Unlock cloud history by signing in.
-              </p>
-            </div>
+            <p className="text-[9px] text-muted-foreground text-center px-2">
+              Sync farm data to the AgriZen cloud.
+            </p>
           </div>
         )}
       </div>
