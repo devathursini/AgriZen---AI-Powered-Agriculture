@@ -5,7 +5,9 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import jsPDF from 'jspdf';
+import { jsPDF } from 'jspdf';
+
+export const maxDuration = 120; // Extend timeout for long AI generations
 
 // Input Schema
 const ComprehensiveFarmReportInputSchema = z.object({
@@ -220,5 +222,10 @@ const aiGeneratedComprehensiveFarmReportFlow = ai.defineFlow(
 export async function aiGeneratedComprehensiveFarmReport(
   input: ComprehensiveFarmReportInput
 ): Promise<ComprehensiveFarmReportOutput> {
-  return aiGeneratedComprehensiveFarmReportFlow(input);
+  try {
+    return await aiGeneratedComprehensiveFarmReportFlow(input);
+  } catch (error: any) {
+    console.error("Farm Report Flow Error:", error);
+    throw new Error(error.message || "An unexpected error occurred during report generation.");
+  }
 }

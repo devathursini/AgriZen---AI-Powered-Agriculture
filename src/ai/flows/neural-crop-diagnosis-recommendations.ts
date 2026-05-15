@@ -10,6 +10,8 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
+export const maxDuration = 120; // Extend timeout for long AI generations
+
 const NeuralCropDiagnosisRecommendationsInputSchema = z.object({
   photoDataUri: z
     .string()
@@ -74,7 +76,12 @@ export type NeuralCropDiagnosisRecommendationsOutput = z.infer<
 export async function neuralCropDiagnosisRecommendations(
   input: NeuralCropDiagnosisRecommendationsInput
 ): Promise<NeuralCropDiagnosisRecommendationsOutput> {
-  return neuralCropDiagnosisRecommendationsFlow(input);
+  try {
+    return await neuralCropDiagnosisRecommendationsFlow(input);
+  } catch (error: any) {
+    console.error("Diagnosis Flow Error:", error);
+    throw new Error(error.message || "An unexpected error occurred during crop diagnosis.");
+  }
 }
 
 const prompt = ai.definePrompt({

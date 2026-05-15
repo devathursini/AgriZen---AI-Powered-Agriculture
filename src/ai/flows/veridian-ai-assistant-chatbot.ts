@@ -6,6 +6,8 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
+export const maxDuration = 120; // Extend timeout for long AI generations
+
 const VeridianAIAssistantChatbotInputSchema = z.object({
   query: z.string().describe('The current message or question from the farmer.'),
   history: z.array(
@@ -23,7 +25,12 @@ const VeridianAIAssistantChatbotOutputSchema = z.object({
 export type VeridianAIAssistantChatbotOutput = z.infer<typeof VeridianAIAssistantChatbotOutputSchema>;
 
 export async function veridianAIAssistantChatbot(input: VeridianAIAssistantChatbotInput): Promise<VeridianAIAssistantChatbotOutput> {
-  return veridianAIAssistantChatbotFlow(input);
+  try {
+    return await veridianAIAssistantChatbotFlow(input);
+  } catch (error: any) {
+    console.error("Chatbot Flow Error:", error);
+    throw new Error(error.message || "An unexpected error occurred during the conversation.");
+  }
 }
 
 const veridianAIAssistantChatbotFlow = ai.defineFlow(
