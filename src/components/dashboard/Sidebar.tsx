@@ -21,7 +21,8 @@ import {
   Loader2,
   AlertCircle,
   ExternalLink,
-  RefreshCw
+  RefreshCw,
+  Plane
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth, useUser } from "@/firebase";
@@ -36,6 +37,7 @@ const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/" },
   { icon: Dna, label: "Crop Diagnosis", href: "/diagnosis" },
   { icon: FileText, label: "Reports", href: "/reports" },
+  { icon: Plane, label: "Drone Control", href: "/drones" },
   { icon: Bot, label: "AI Assistant", href: "/assistant" },
   { icon: BarChart3, label: "Analytics", href: "/analytics" },
   { icon: Droplets, label: "Smart Irrigation", href: "/irrigation" },
