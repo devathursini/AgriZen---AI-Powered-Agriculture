@@ -2,17 +2,12 @@
 
 import { useState } from "react";
 import { 
-  BarChart, 
-  Bar, 
   XAxis, 
   YAxis, 
-  CartesianGrid, 
   Tooltip as RechartsTooltip, 
   ResponsiveContainer, 
   AreaChart, 
   Area,
-  LineChart,
-  Line,
   PieChart,
   Pie,
   Cell
@@ -44,7 +39,6 @@ import {
 } from "@/components/ui/select";
 import { neuralYieldPrediction, type YieldPredictionOutput } from "@/ai/flows/neural-yield-prediction-engine";
 import { useToast } from "@/hooks/use-toast";
-import { cn } from "@/lib/utils";
 
 const yieldData = [
   { month: "Jan", actual: 4000, projected: 4400 },
@@ -103,9 +97,9 @@ export default function AnalyticsPage() {
     <div className="space-y-8">
       <div>
         <h1 className="font-headline text-4xl font-bold text-foreground">
-          Agro-Predictive <span className="text-primary">Engine</span>
+          AgriZen <span className="text-primary">Analytics</span>
         </h1>
-        <p className="text-muted-foreground">Advanced harvesting trends and profit estimation</p>
+        <p className="text-muted-foreground">Advanced Zen harvesting trends and profit estimation</p>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
@@ -133,7 +127,7 @@ export default function AnalyticsPage() {
         <Card className="glass lg:col-span-1 border-primary/20">
           <CardHeader>
             <CardTitle className="font-headline flex items-center gap-2">
-              <Brain className="h-5 w-5 text-primary" /> Neural Yield Predictor
+              <Brain className="h-5 w-5 text-primary" /> Zen Yield Predictor
             </CardTitle>
             <CardDescription>Calculate expected harvest using AI</CardDescription>
           </CardHeader>
@@ -208,7 +202,7 @@ export default function AnalyticsPage() {
         <Card className="glass lg:col-span-2 relative overflow-hidden">
           {prediction && (
             <div className="absolute top-0 right-0 p-4">
-              <Badge className="bg-primary/20 text-primary border-primary/20">AI Verified</Badge>
+              <Badge className="bg-primary/20 text-primary border-primary/20">AgriZen AI Verified</Badge>
             </div>
           )}
           <CardHeader>
@@ -276,7 +270,7 @@ export default function AnalyticsPage() {
                 <Brain className="h-12 w-12 opacity-10" />
                 <div className="space-y-1">
                   <p className="text-sm font-bold uppercase tracking-widest">Awaiting Neural Link</p>
-                  <p className="text-xs">Input your farm parameters and run the prediction engine.</p>
+                  <p className="text-xs">Input your farm parameters and run the AgriZen prediction engine.</p>
                 </div>
               </div>
             )}
@@ -374,7 +368,7 @@ export default function AnalyticsPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Veridian IQ's neural engine suggests moving to a crop-rotation cycle in Sector B. Soil pH is trending towards 6.2, which is optimal for pulse crops.
+              AgriZen AI's neural engine suggests moving to a crop-rotation cycle in Sector B. Soil pH is trending towards 6.2, which is optimal for pulse crops.
             </p>
             <Button variant="outline" className="border-primary/20 text-primary hover:bg-primary/10">
               Apply Recommendation <ArrowUpRight className="ml-2 h-4 w-4" />
@@ -389,7 +383,7 @@ export default function AnalyticsPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Long-term forecast indicates an 18% increase in storm frequency. Veridian recommends upgrading drone hulls to weatherproof Alloy-7.
+              Long-term forecast indicates an 18% increase in storm frequency. AgriZen recommends upgrading drone hulls to weatherproof Alloy-7.
             </p>
             <Button variant="outline" className="border-accent/20 text-accent hover:bg-accent/10">
               Check Inventory <ArrowUpRight className="ml-2 h-4 w-4" />

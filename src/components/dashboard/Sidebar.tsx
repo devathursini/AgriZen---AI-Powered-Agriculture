@@ -11,7 +11,7 @@ import {
   Droplets, 
   Settings, 
   LogOut,
-  Leaf,
+  Sprout,
   CloudRain,
   ShieldAlert,
   Dna,
@@ -105,10 +105,10 @@ export function Sidebar() {
     <div className="flex h-screen w-64 flex-col bg-sidebar border-r border-sidebar-border/50">
       <div className="flex h-20 items-center gap-3 px-6">
         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary neon-glow text-primary-foreground">
-          <Leaf className="h-6 w-6" />
+          <Sprout className="h-6 w-6" />
         </div>
         <span className="font-headline text-xl font-bold tracking-tight text-primary">
-          VERIDIAN IQ
+          AgriZen AI
         </span>
       </div>
 

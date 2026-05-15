@@ -54,8 +54,8 @@ export default function AssistantPage() {
       const isApiKeyError = err.message?.includes("API key") || err.message?.includes("400");
       
       const errorMessage = isApiKeyError 
-        ? "Veridian Assistant is currently offline due to a missing Gemini API key. Please check the .env configuration."
-        : "I'm having trouble connecting to the neural network. Please try again in a moment.";
+        ? "AgriZen Assistant is currently offline due to a configuration error. Please ensure the Gemini API key is correct."
+        : "I'm having trouble connecting to the Zen neural network. Please try again in a moment.";
 
       setMessages(prev => [...prev, {
         role: 'model',
@@ -76,9 +76,9 @@ export default function AssistantPage() {
     <div className="flex flex-col h-[calc(100vh-8rem)]">
       <div className="mb-6">
         <h1 className="font-headline text-4xl font-bold text-foreground">
-          Veridian <span className="text-primary">Assistant</span>
+          AgriZen <span className="text-primary">Assistant</span>
         </h1>
-        <p className="text-muted-foreground">Context-aware AI Agronomist in Tamil & English</p>
+        <p className="text-muted-foreground">Context-aware Zen AI Agronomist in Tamil & English</p>
       </div>
 
       <div className="flex-1 flex flex-col glass rounded-2xl overflow-hidden neon-border">
@@ -91,7 +91,7 @@ export default function AssistantPage() {
                 <Bot className="h-20 w-20 text-primary relative" />
               </div>
               <div className="space-y-2 max-w-md">
-                <h3 className="text-2xl font-bold font-headline">Welcome to Veridian IQ</h3>
+                <h3 className="text-2xl font-bold font-headline">Welcome to AgriZen AI</h3>
                 <p className="text-muted-foreground">I can help you with crop disease identification, irrigation schedules, market trends, and more. Try asking something like:</p>
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
@@ -127,7 +127,7 @@ export default function AssistantPage() {
               </div>
               <div className={cn(
                 "max-w-[80%] rounded-2xl p-4 text-sm leading-relaxed",
-                msg.role === 'model' ? (msg.content[0].text.includes("Gemini API key") ? "bg-destructive/10 text-destructive border border-destructive/20" : "bg-white/5 text-foreground") : "bg-primary text-primary-foreground font-medium"
+                msg.role === 'model' ? (msg.content[0].text.includes("AgriZen Assistant is currently offline") ? "bg-destructive/10 text-destructive border border-destructive/20" : "bg-white/5 text-foreground") : "bg-primary text-primary-foreground font-medium"
               )}>
                 {msg.content[0].text}
               </div>
@@ -163,7 +163,7 @@ export default function AssistantPage() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-              placeholder="Ask Veridian about your farm..."
+              placeholder="Ask AgriZen about your farm..."
               className="flex-1 bg-white/5 border-white/10 focus-visible:ring-primary h-12"
             />
             <Button 

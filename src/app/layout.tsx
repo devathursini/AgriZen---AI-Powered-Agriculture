@@ -4,7 +4,7 @@ import { FirebaseClientProvider } from '@/firebase';
 import { Toaster } from '@/components/ui/toaster';
 
 export const metadata: Metadata = {
-  title: 'Veridian IQ | Futuristic AI Smart Agriculture',
+  title: 'AgriZen AI | Zen Smart Agriculture',
   description: 'The world\'s most advanced AI-powered Smart Agriculture Ecosystem for enterprise-level farming.',
 };
 

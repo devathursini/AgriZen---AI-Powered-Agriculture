@@ -3,12 +3,8 @@
 import { useState } from "react";
 import { 
   ShieldAlert, 
-  AlertTriangle, 
   Flame, 
   Wind, 
-  Droplets, 
-  Zap, 
-  Activity, 
   Radio, 
   Bell, 
   ShieldCheck, 
@@ -61,7 +57,7 @@ export default function DisasterCenterPage() {
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="font-headline text-4xl font-bold text-foreground">
-            Disaster <span className="text-destructive">Response Center</span>
+            AgriZen <span className="text-destructive">Response Center</span>
           </h1>
           <p className="text-muted-foreground">Strategic emergency management and threat mitigation hub</p>
         </div>
@@ -123,7 +119,7 @@ export default function DisasterCenterPage() {
             <div className="p-4 rounded-xl bg-primary/5 border border-primary/10 space-y-4">
               <div className="flex items-center gap-3">
                 <LifeBuoy className="h-5 w-5 text-primary" />
-                <p className="text-sm font-bold">Veridian Rapid Response</p>
+                <p className="text-sm font-bold">AgriZen Rapid Response</p>
               </div>
               <p className="text-xs text-muted-foreground">Priority access to autonomous repair drones and emergency agricultural consultants.</p>
               <Button className="w-full bg-primary/10 text-primary border border-primary/20 hover:bg-primary hover:text-primary-foreground font-bold">

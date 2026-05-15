@@ -5,9 +5,6 @@ import {
   Search, 
   Filter, 
   Leaf, 
-  Zap, 
-  Package, 
-  Tag, 
   Star,
   ArrowUpRight
 } from "lucide-react";
@@ -18,12 +15,12 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const products = [
-  { id: 1, name: "Bio-Genic Tomato Seeds", category: "Seeds", price: 45.99, rating: 4.8, img: "https://picsum.photos/seed/seeds/400/300", tag: "Hot" },
-  { id: 2, name: "Veridian-9 Organic Fertilizer", category: "Fertilizers", price: 120.00, rating: 4.9, img: "https://picsum.photos/seed/fert/400/300", tag: "Best Seller" },
-  { id: 3, name: "Smart Soil pH Sensor X1", category: "IoT", price: 299.99, rating: 4.7, img: "https://picsum.photos/seed/iot/400/300", tag: "Futuristic" },
-  { id: 4, name: "Autonomous Spray Drone", category: "Hardware", price: 2450.00, rating: 5.0, img: "https://picsum.photos/seed/drone/400/300", tag: "Premium" },
-  { id: 5, name: "Nano-Nitrogen Booster", category: "Fertilizers", price: 89.00, rating: 4.6, img: "https://picsum.photos/seed/nano/400/300", tag: "New" },
-  { id: 6, name: "Hydra-Smart Controller", category: "IoT", price: 155.50, rating: 4.8, img: "https://picsum.photos/seed/irrigation/400/300", tag: "Eco" },
+  { id: 1, name: "AgriZen Bio-Seeds", category: "Seeds", price: 45.99, rating: 4.8, img: "https://picsum.photos/seed/seeds/400/300", tag: "Hot" },
+  { id: 2, name: "AgriZen Organic Fertilizer", category: "Fertilizers", price: 120.00, rating: 4.9, img: "https://picsum.photos/seed/fert/400/300", tag: "Best Seller" },
+  { id: 3, name: "Zen Soil pH Sensor X1", category: "IoT", price: 299.99, rating: 4.7, img: "https://picsum.photos/seed/iot/400/300", tag: "Futuristic" },
+  { id: 4, name: "Autonomous Agri-Drone", category: "Hardware", price: 2450.00, rating: 5.0, img: "https://picsum.photos/seed/drone/400/300", tag: "Premium" },
+  { id: 5, name: "Nano-Nitrogen Zen Booster", category: "Fertilizers", price: 89.00, rating: 4.6, img: "https://picsum.photos/seed/nano/400/300", tag: "New" },
+  { id: 6, name: "Zen-Smart Hydra Controller", category: "IoT", price: 155.50, rating: 4.8, img: "https://picsum.photos/seed/irrigation/400/300", tag: "Eco" },
 ];
 
 export default function MarketplacePage() {
@@ -32,7 +29,7 @@ export default function MarketplacePage() {
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="font-headline text-4xl font-bold text-foreground">
-            Agri-Nexus <span className="text-primary">Marketplace</span>
+            AgriZen <span className="text-primary">Nexus Marketplace</span>
           </h1>
           <p className="text-muted-foreground">Decentralized ecosystem for futuristic farming tools</p>
         </div>

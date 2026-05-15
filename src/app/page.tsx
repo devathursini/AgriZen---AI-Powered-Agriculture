@@ -1,7 +1,6 @@
-
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { 
   ResponsiveContainer, 
   AreaChart, 
@@ -17,22 +16,19 @@ import {
   Thermometer, 
   Activity, 
   TrendingUp,
-  ArrowRight,
   Dna,
   Bot,
   ShoppingCart,
   Loader2,
   FileText,
   LogIn,
-  ExternalLink,
-  Calendar
+  ExternalLink
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import DashboardLayout from "./(dashboard)/layout";
-import { cn } from "@/lib/utils";
 import { aiGeneratedComprehensiveFarmReport } from "@/ai/flows/ai-generated-comprehensive-farm-report-flow";
 import { useToast } from "@/hooks/use-toast";
 import { useFirestore, useUser, useAuth, useCollection } from "@/firebase";
@@ -118,10 +114,10 @@ export default function Dashboard() {
 
     setIsGenerating(true);
     try {
-      const cropType = "Bio-Genic Tomato";
+      const cropType = "AgriZen Bio-Tomato";
       const result = await aiGeneratedComprehensiveFarmReport({
-        farmerName: user.displayName || "Nexus Farmer",
-        farmLocation: "Sector 7G, Veridian Prime",
+        farmerName: user.displayName || "AgriZen Farmer",
+        farmLocation: "Zen Sector 1, AgriZen Prime",
         cropType: cropType,
         plantingDate: "2024-01-15",
         weatherData: {
@@ -130,7 +126,7 @@ export default function Dashboard() {
           rainProbability: 12
         },
         soilData: {
-          soilType: "Loamy-Nexus",
+          soilType: "Zen-Loam",
           phValue: 6.2,
           moistureLevel: 58
         },
@@ -157,7 +153,7 @@ export default function Dashboard() {
 
       toast({
         title: "Report Generated",
-        description: "Your AI farm report is ready and has been saved to your history.",
+        description: "Your AgriZen AI farm report is ready and has been saved.",
         action: (
           <Button variant="outline" size="sm" asChild>
             <a href={result.reportUrl} target="_blank" rel="noopener noreferrer">View PDF</a>
@@ -182,7 +178,7 @@ export default function Dashboard() {
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <h1 className="font-headline text-4xl font-bold text-foreground">
-              Nexus <span className="text-primary">Control Hub</span>
+              AgriZen <span className="text-primary">Control Hub</span>
             </h1>
             <p className="text-muted-foreground">Autonomous Farming Ecosystem Live Status</p>
           </div>
@@ -288,7 +284,7 @@ export default function Dashboard() {
               <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
               <CardHeader>
                 <Dna className="h-8 w-8 text-primary mb-2" />
-                <CardTitle className="font-headline">Neural Diagnosis</CardTitle>
+                <CardTitle className="font-headline">Zen Diagnosis</CardTitle>
                 <CardDescription>Scan crops using high-precision computer vision AI.</CardDescription>
               </CardHeader>
             </Card>
@@ -298,7 +294,7 @@ export default function Dashboard() {
               <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
               <CardHeader>
                 <Bot className="h-8 w-8 text-primary mb-2" />
-                <CardTitle className="font-headline">Veridian AI</CardTitle>
+                <CardTitle className="font-headline">AgriZen AI Assistant</CardTitle>
                 <CardDescription>Talk to your digital agronomist for expert advice.</CardDescription>
               </CardHeader>
             </Card>
@@ -308,7 +304,7 @@ export default function Dashboard() {
               <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
               <CardHeader>
                 <ShoppingCart className="h-8 w-8 text-primary mb-2" />
-                <CardTitle className="font-headline">Agri-Nexus</CardTitle>
+                <CardTitle className="font-headline">AgriZen Nexus</CardTitle>
                 <CardDescription>Access the futuristic marketplace for smart tools.</CardDescription>
               </CardHeader>
             </Card>

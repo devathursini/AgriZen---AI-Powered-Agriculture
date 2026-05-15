@@ -1,6 +1,6 @@
 'use server';
 /**
- * @fileOverview A Genkit flow for generating a comprehensive farm report in PDF format.
+ * @fileOverview A Genkit flow for generating a comprehensive farm report in PDF format for AgriZen AI.
  *
  * - aiGeneratedComprehensiveFarmReport - A function that orchestrates the generation of a comprehensive farm report.
  * - ComprehensiveFarmReportInput - The input type for the aiGeneratedComprehensiveFarmReport function.
@@ -53,12 +53,10 @@ const ComprehensiveFarmReportOutputSchema = z.object({
 export type ComprehensiveFarmReportOutput = z.infer<typeof ComprehensiveFarmReportOutputSchema>;
 
 // Mock PDF generation tool
-// In a real application, this would call a backend service (e.g., Python ReportLab)
-// to generate and store the PDF, returning its accessible URL.
 const generatePdfReportTool = ai.defineTool(
   {
     name: 'generatePdfReport',
-    description: 'Generates a comprehensive farm report in PDF format from the provided content and metadata.',
+    description: 'Generates a comprehensive farm report in PDF format from the provided content and metadata for AgriZen AI.',
     inputSchema: z.object({
       reportTitle: z.string().describe('Title of the report.'),
       reportSummary: z.string().describe('The AI-generated textual summary of the report content.'),
@@ -66,19 +64,13 @@ const generatePdfReportTool = ai.defineTool(
       farmLocation: z.string(),
       cropType: z.string(),
       reportTimestamp: z.string(),
-      // Potentially pass all structured data here if the PDF tool needs to render it.
-      // For simplicity, we'll assume reportSummary is the main content.
-      // In a real scenario, this would include all relevant fields for PDF templating.
     }),
     outputSchema: z.string().url().describe('The URL to the generated PDF report.'),
   },
   async (input) => {
-    // Simulate PDF generation and storage
-    // In a production environment, this would involve an API call to a PDF generation service.
-    const mockReportId = `report-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-    const mockReportUrl = `https://veridianiq.com/reports/${mockReportId}.pdf`;
-    console.log(`Simulating PDF report generation for: ${input.reportTitle}`);
-    console.log(`Report Summary (first 100 chars): ${input.reportSummary.substring(0, 100)}...`);
+    const mockReportId = `agrizen-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    const mockReportUrl = `https://agrizen.ai/reports/${mockReportId}.pdf`;
+    console.log(`Simulating AgriZen AI PDF report generation for: ${input.reportTitle}`);
     return mockReportUrl;
   }
 );
@@ -88,14 +80,13 @@ const generateReportSummaryPrompt = ai.definePrompt({
   name: 'generateReportSummaryPrompt',
   input: {schema: ComprehensiveFarmReportInputSchema},
   output: {schema: z.object({reportText: z.string().describe('The comprehensive summary text for the farm report.')})},
-  prompt: `You are an expert agricultural AI assistant. Your task is to generate a comprehensive and professional farm report summary based on the provided data.
-The report should be structured clearly, covering farmer details, crop specifics, environmental conditions, and any AI findings such as disease diagnosis, yield predictions, or market insights.
-Focus on clarity, conciseness, and actionable insights.
+  prompt: `You are an expert AgriZen AI assistant. Your task is to generate a comprehensive and professional farm report summary based on the provided data.
+The report should be structured clearly, covering farmer details, crop specifics, environmental conditions, and any AI findings.
 
 ---
 REPORT START
 
-# Comprehensive Farm Report
+# AgriZen Comprehensive Farm Report
 
 ## Farmer and Farm Details:
 - Farmer: {{{farmerName}}}
@@ -117,7 +108,7 @@ REPORT START
   - Moisture Level: {{{soilData.moistureLevel}}}%
 
 {{#if diseaseDiagnosis}}
-## AI Crop Disease Diagnosis:
+## Zen Crop Disease Diagnosis:
 - Disease: {{{diseaseDiagnosis.diseaseName}}}
 - Severity: {{{diseaseDiagnosis.severity}}}
 - Confidence Score: {{{diseaseDiagnosis.confidenceScore}}}%
@@ -128,23 +119,22 @@ REPORT START
 {{/if}}
 
 {{#if yieldPrediction}}
-## AI Yield Prediction:
+## Zen Yield Prediction:
 - Predicted Yield: {{{yieldPrediction.predictedYield}}} {{{yieldPrediction.unit}}}
 - Estimated Profit: $ {{{yieldPrediction.profitEstimation}}}
 {{/if}}
 
 {{#if marketInsights}}
-## AI Market Insights:
+## Zen Market Insights:
 - Future Price: $ {{{marketInsights.futurePrice}}} per {{{marketInsights.cropUnit}}}
 - Demand Forecast: {{{marketInsights.demandForecast}}}
 {{/if}}
 
 ## Recommendations:
-Based on the analysis, here are some general recommendations:
+Based on the Zen AI analysis, here are some general recommendations:
 - Ensure optimal irrigation based on soil moisture levels.
 - Monitor weather forecasts closely for any adverse conditions.
 - Implement suggested treatments promptly if disease diagnosis is confirmed.
-- Consider market insights for optimal selling times.
 
 ---
 REPORT END
@@ -171,7 +161,7 @@ const aiGeneratedComprehensiveFarmReportFlow = ai.defineFlow(
 
     // 2. Call the PDF generation tool with the summary and relevant metadata
     const reportUrl = await generatePdfReportTool({
-      reportTitle: `Farm Report for ${input.cropType} by ${input.farmerName}`,
+      reportTitle: `AgriZen Farm Report for ${input.cropType} by ${input.farmerName}`,
       reportSummary: reportSummary,
       farmerName: input.farmerName,
       farmLocation: input.farmLocation,

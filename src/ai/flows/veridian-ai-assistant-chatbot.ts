@@ -1,6 +1,6 @@
 'use server';
 /**
- * @fileOverview This file implements the Genkit flow for the Veridian AI Assistant Chatbot.
+ * @fileOverview This file implements the Genkit flow for the AgriZen AI Assistant Chatbot.
  * It provides an intelligent, context-aware, and multi-lingual chatbot for farmers.
  *
  * - veridianAIAssistantChatbot - A function that handles the chatbot interaction.
@@ -44,7 +44,7 @@ const veridianAIAssistantChatbotFlow = ai.defineFlow(
       {
         role: 'system',
         content: [{
-          text: `You are an intelligent agriculture chatbot named Veridian Assistant. Your goal is to provide comprehensive and helpful advice to farmers. You can respond in English or Tamil. Your current objective is to assist with the user's specific query: ${input.query}`
+          text: `You are an intelligent agriculture chatbot named AgriZen Assistant. Your goal is to provide comprehensive, calm, and helpful advice to farmers. You can respond in English or Tamil. Your current objective is to assist with the user's specific query: ${input.query}`
         }]
       },
     ];
@@ -77,7 +77,7 @@ const veridianAIAssistantChatbotFlow = ai.defineFlow(
       
       if (error.message?.includes('API key not valid') || error.message?.includes('400')) {
         return { 
-          response: "Veridian Assistant is currently configuring its neural link (Invalid or restricted API Key). Please ensure the API key in .env is correct for Google AI Studio." 
+          response: "AgriZen Assistant is currently configuring its neural link (Invalid or restricted API Key). Please ensure the API key in .env is correct for Google AI Studio." 
         };
       }
       
