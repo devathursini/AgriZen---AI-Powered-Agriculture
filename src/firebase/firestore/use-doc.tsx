@@ -11,7 +11,7 @@ import { errorEmitter } from '../error-emitter';
 import { FirestorePermissionError } from '../errors';
 
 export function useDoc<T = DocumentData>(docRef: DocumentReference<T> | null) {
-  const [data, setData] = useState<T | null>(null);
+  const [data, setData] = useState<(T & { id: string }) | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
@@ -24,7 +24,15 @@ export function useDoc<T = DocumentData>(docRef: DocumentReference<T> | null) {
     const unsubscribe = onSnapshot(
       docRef,
       (snapshot: DocumentSnapshot<T>) => {
-        setData(snapshot.data() || null);
+        const docData = snapshot.data();
+        if (docData) {
+          setData({
+            ...(docData as T),
+            id: snapshot.id,
+          });
+        } else {
+          setData(null);
+        }
         setLoading(false);
       },
       async (serverError) => {
