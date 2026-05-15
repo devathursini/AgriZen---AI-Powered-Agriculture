@@ -101,7 +101,7 @@ const neuralCropDiagnosisRecommendationsFlow = ai.defineFlow(
     outputSchema: NeuralCropDiagnosisRecommendationsOutputSchema,
   },
   async input => {
-    let retries = 3;
+    let retries = 5; // Increased retries
     let lastError: any;
 
     while (retries >= 0) {
@@ -116,21 +116,18 @@ const neuralCropDiagnosisRecommendationsFlow = ai.defineFlow(
         const errMsg = err.message?.toLowerCase() || "";
         
         // Detect transient errors including 429 Rate Limits and 503 Overloads
-        const isTransient = 
-          errMsg.includes('503') || 
-          errMsg.includes('unavailable') || 
-          errMsg.includes('429') || 
-          errMsg.includes('quota') || 
-          errMsg.includes('rate limit') || 
-          errMsg.includes('exhausted') || 
-          errMsg.includes('high demand');
+        const isRateLimit = errMsg.includes('429') || errMsg.includes('quota') || errMsg.includes('rate limit') || errMsg.includes('exhausted');
+        const isOverload = errMsg.includes('503') || errMsg.includes('unavailable') || errMsg.includes('high demand');
 
-        if (isTransient && retries > 0) {
+        if ((isRateLimit || isOverload) && retries > 0) {
+          const attempt = 5 - retries;
           retries--;
-          // Calculate backoff: rate limits (429) need longer pauses than overloads (503)
-          const isRateLimit = errMsg.includes('429') || errMsg.includes('quota') || errMsg.includes('rate limit');
-          const waitTime = isRateLimit ? 5000 * (3 - retries) : 2000;
           
+          // Exponential backoff: Rate limits (429) need significantly more time
+          // Attempt 1: 10s, Attempt 2: 20s, Attempt 3: 40s, Attempt 4: 80s
+          const waitTime = isRateLimit ? 10000 * Math.pow(2, attempt) : 2000;
+          
+          console.log(`AgriZen Neural Link: Rate limit or overload detected. Retrying in ${waitTime}ms... (Attempts left: ${retries + 1})`);
           await new Promise(resolve => setTimeout(resolve, waitTime));
           continue;
         }
