@@ -1,9 +1,9 @@
 
 'use server';
 /**
- * @fileOverview A Genkit flow for generating a PDF report specifically for a crop diagnosis.
+ * @fileOverview A Genkit flow for generating a professional PDF report specifically for a crop diagnosis.
  *
- * - generateDiagnosisPdfReport - A function that orchestrates the generation of a diagnosis report.
+ * - generateDiagnosisPdfReport - A function that orchestrates the generation of a detailed diagnosis report.
  */
 
 import {ai} from '@/ai/genkit';
@@ -21,6 +21,8 @@ const GenerateDiagnosisPdfInputSchema = z.object({
     severity: z.string(),
     description: z.string(),
     treatmentSuggestions: z.array(z.string()),
+    fertilizerRecommendations: z.array(z.string()).optional(),
+    organicFarmingSuggestions: z.array(z.string()).optional(),
   }),
   timestamp: z.string(),
 });
@@ -34,16 +36,19 @@ export type GenerateDiagnosisPdfOutput = z.infer<typeof GenerateDiagnosisPdfOutp
 const generateDiagnosisPdfTool = ai.defineTool(
   {
     name: 'generateDiagnosisPdf',
-    description: 'Generates a PDF diagnosis report for AgriZen AI.',
+    description: 'Generates a PDF diagnosis report with detailed AI findings for AgriZen AI.',
     inputSchema: z.object({
-      content: z.string(),
-      plantName: z.string(),
+      content: z.string().describe('The full text content of the diagnosis report.'),
+      plantName: z.string().describe('Name of the plant analyzed.'),
+      diagnosisResult: z.string().describe('The core diagnosis result (e.g. Healthy or Disease Name).'),
     }),
     outputSchema: z.string().url(),
   },
   async (input) => {
-    console.log(`Generating Diagnosis PDF for: ${input.plantName}`);
-    // Mock URL for a real-looking PDF
+    console.log(`Generating Detailed Diagnosis PDF for: ${input.plantName}`);
+    console.log(`Diagnosis Summary: ${input.diagnosisResult}`);
+    // In a production environment, this tool would call a PDF generation service (like Puppeteer or a Cloud Function).
+    // Returning a stable sample PDF for the preview.
     return "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf";
   }
 );
@@ -55,24 +60,52 @@ const generateDiagnosisPdfReportFlow = ai.defineFlow(
     outputSchema: GenerateDiagnosisPdfOutputSchema,
   },
   async (input) => {
+    const { identification, diagnosis, timestamp } = input;
+    
     const reportContent = `
-AgriZen AI Diagnosis Report
----------------------------
-Date: ${input.timestamp}
-Plant: ${input.identification.commonName} (${input.identification.latinName})
-Status: ${input.diagnosis.isHealthy ? 'Healthy' : 'Issues Detected'}
-Confidence: ${input.diagnosis.confidenceScore}%
+=========================================
+AGRIZEN AI: CROP DIAGNOSIS REPORT
+=========================================
+Report Generated: ${new Date(timestamp).toLocaleString()}
 
-Analysis:
-${input.diagnosis.description}
+PLANT IDENTIFICATION
+-----------------------------------------
+Common Name: ${identification.commonName}
+Latin Name:  ${identification.latinName}
 
-Recommendations:
-${input.diagnosis.treatmentSuggestions.join('\n')}
+HEALTH ASSESSMENT
+-----------------------------------------
+Status: ${diagnosis.isHealthy ? 'HEALTHY' : 'THREAT DETECTED'}
+Diagnosis: ${diagnosis.diseaseName || 'No specific disease detected'}
+Confidence: ${diagnosis.confidenceScore}%
+Severity: ${diagnosis.severity}
+
+DETAILED ANALYSIS
+-----------------------------------------
+${diagnosis.description}
+
+RECOMMENDED TREATMENT PLAN
+-----------------------------------------
+${diagnosis.treatmentSuggestions.map(s => `- ${s}`).join('\n')}
+
+FERTILIZER RECOMMENDATIONS
+-----------------------------------------
+${diagnosis.fertilizerRecommendations?.length ? diagnosis.fertilizerRecommendations.map(s => `- ${s}`).join('\n') : 'No specific fertilizer adjustments required.'}
+
+ORGANIC FARMING SUGGESTIONS
+-----------------------------------------
+${diagnosis.organicFarmingSuggestions?.length ? diagnosis.organicFarmingSuggestions.map(s => `- ${s}`).join('\n') : 'General organic maintenance recommended.'}
+
+=========================================
+This report was generated using AgriZen 
+Neural Vision Engine v4.0.
+=========================================
     `;
 
     const reportUrl = await generateDiagnosisPdfTool({
       content: reportContent,
-      plantName: input.identification.commonName,
+      plantName: identification.commonName,
+      diagnosisResult: diagnosis.isHealthy ? 'Healthy' : (diagnosis.diseaseName || 'Issue Detected'),
     });
 
     return { reportUrl };

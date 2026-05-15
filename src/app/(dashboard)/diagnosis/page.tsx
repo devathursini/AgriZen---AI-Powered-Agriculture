@@ -155,13 +155,19 @@ export default function DiagnosisPage() {
     setSaving(true);
 
     try {
-      // 1. Generate the PDF Report first
+      // 1. Generate the PDF Report with all diagnosis details
       const pdfResult = await generateDiagnosisPdfReport({
         identification: result.identification,
         diagnosis: {
-          ...result.diagnosis,
-          diseaseName: result.diagnosis.diseaseName || 'None',
-        } as any,
+          isHealthy: result.diagnosis.isHealthy,
+          diseaseName: result.diagnosis.diseaseName || 'None Detected',
+          confidenceScore: result.diagnosis.confidenceScore,
+          severity: result.diagnosis.severity,
+          description: result.diagnosis.description,
+          treatmentSuggestions: result.diagnosis.treatmentSuggestions,
+          fertilizerRecommendations: result.diagnosis.fertilizerRecommendations,
+          organicFarmingSuggestions: result.diagnosis.organicFarmingSuggestions,
+        },
         timestamp: new Date().toISOString()
       });
 
@@ -178,11 +184,19 @@ export default function DiagnosisPage() {
         createdAt: serverTimestamp()
       };
 
-      await addDoc(collection(db, "diagnoses"), diagnosisData);
+      addDoc(collection(db, "diagnoses"), diagnosisData)
+        .catch(async (error) => {
+          const permissionError = new FirestorePermissionError({
+            path: "diagnoses",
+            operation: "create",
+            requestResourceData: diagnosisData,
+          });
+          errorEmitter.emit("permission-error", permissionError);
+        });
       
       toast({
         title: "Report Saved",
-        description: "Diagnosis and PDF report have been stored in your history.",
+        description: "Comprehensive diagnosis and PDF report have been stored in your history.",
         action: (
           <Button variant="outline" size="sm" onClick={() => router.push('/diagnosis/history')}>
             View History
@@ -191,19 +205,11 @@ export default function DiagnosisPage() {
       });
     } catch (error: any) {
       console.error("Save Error:", error);
-      if (error.code === 'permission-denied') {
-        const permissionError = new FirestorePermissionError({
-          path: "diagnoses",
-          operation: "create",
-        });
-        errorEmitter.emit("permission-error", permissionError);
-      } else {
-        toast({
-          variant: "destructive",
-          title: "Operation Failed",
-          description: error.message || "Could not save your report."
-        });
-      }
+      toast({
+        variant: "destructive",
+        title: "Operation Failed",
+        description: error.message || "Could not save your report."
+      });
     } finally {
       setSaving(false);
     }
