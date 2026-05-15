@@ -28,7 +28,8 @@ import { signInWithPopup, GoogleAuthProvider, signOut } from "firebase/auth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import React from "react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import React, { useState } from "react";
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/" },
@@ -48,8 +49,12 @@ export function Sidebar() {
   const { user, loading } = useUser();
   const auth = useAuth();
   const { toast } = useToast();
+  const [authError, setAuthError] = useState<string | null>(null);
+
+  const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
 
   const handleSignIn = async () => {
+    setAuthError(null);
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
@@ -57,29 +62,20 @@ export function Sidebar() {
       console.error("Sign in failed", error);
       
       const isIdentityBlocked = error.message?.includes('identitytoolkit') || error.code?.includes('api-blocked');
-      const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
-
+      
       if (isIdentityBlocked) {
+        setAuthError("identity-blocked");
         toast({
           variant: "destructive",
           title: "API Activation Required",
-          description: (
-            <div className="space-y-2">
-              <p>The Identity Toolkit API must be enabled for your project to allow sign-in.</p>
-              <Button variant="link" className="p-0 h-auto text-xs text-white underline decoration-white/50" asChild>
-                <a href={`https://console.cloud.google.com/apis/library/identitytoolkit.googleapis.com?project=${projectId}`} target="_blank" rel="noopener noreferrer">
-                  Enable API in Google Cloud <ExternalLink className="ml-1 h-3 w-3" />
-                </a>
-              </Button>
-            </div>
-          ),
+          description: "The Identity Toolkit API must be enabled in Google Cloud to allow sign-in.",
         });
         return;
       }
 
       let message = "Could not complete sign in.";
       if (error.code === 'auth/auth-domain-config-required') {
-        message = "Firebase Auth is not fully configured. Please add your Auth Domain to the .env file.";
+        message = "Firebase Auth is not fully configured. Check your Auth Domain.";
       } else if (error.code === 'auth/operation-not-allowed') {
         message = "Google Sign-In is not enabled in your Firebase Console.";
       }
@@ -111,7 +107,26 @@ export function Sidebar() {
         </span>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 py-6">
+      <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4">
+        {authError === "identity-blocked" && (
+          <Alert variant="destructive" className="bg-destructive/10 border-destructive/20 mb-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle className="text-xs font-bold uppercase tracking-wider">API Blocked</AlertTitle>
+            <AlertDescription className="text-[10px] space-y-2">
+              <p>Identity Toolkit API is disabled.</p>
+              <Button variant="link" className="p-0 h-auto text-[10px] text-destructive underline" asChild>
+                <a 
+                  href={`https://console.cloud.google.com/apis/library/identitytoolkit.googleapis.com?project=${projectId}`} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                >
+                  Enable API Now <ExternalLink className="ml-1 h-2 w-2" />
+                </a>
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
+
         <nav className="space-y-1">
           {menuItems.map((item) => {
             const isActive = pathname === item.href;
@@ -178,10 +193,10 @@ export function Sidebar() {
           </div>
         ) : (
           <div className="space-y-2">
-            {!process.env.NEXT_PUBLIC_FIREBASE_API_KEY || process.env.NEXT_PUBLIC_FIREBASE_API_KEY === 'YOUR_FIREBASE_API_KEY' ? (
+            {!process.env.NEXT_PUBLIC_FIREBASE_API_KEY || process.env.NEXT_PUBLIC_FIREBASE_API_KEY.includes('YOUR_') ? (
               <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-[10px] text-destructive flex items-start gap-2">
                 <AlertCircle className="h-3 w-3 shrink-0 mt-0.5" />
-                <p>Firebase configuration missing in .env</p>
+                <p>Firebase API Key missing in .env</p>
               </div>
             ) : null}
             <Button 
