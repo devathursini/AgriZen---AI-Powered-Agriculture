@@ -3,34 +3,26 @@
 
 import { useState } from "react";
 import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip as RechartsTooltip, 
   ResponsiveContainer, 
   AreaChart, 
   Area,
-  LineChart,
-  Line
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  Tooltip as RechartsTooltip
 } from "recharts";
 import { 
   CloudSun, 
   Droplet, 
   Thermometer, 
-  Wind, 
-  Zap, 
   Activity, 
   TrendingUp,
-  AlertTriangle,
   ArrowRight,
   Dna,
   Bot,
   ShoppingCart,
   Loader2,
-  FileText,
-  CheckCircle2
+  FileText
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -40,6 +32,8 @@ import DashboardLayout from "./(dashboard)/layout";
 import { cn } from "@/lib/utils";
 import { aiGeneratedComprehensiveFarmReport } from "@/ai/flows/ai-generated-comprehensive-farm-report-flow";
 import { useToast } from "@/hooks/use-toast";
+import { useFirestore, useUser } from "@/firebase";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 
 const data = [
   { name: "Mon", health: 85, yield: 65 },
@@ -77,14 +71,17 @@ const StatCard = ({ icon: Icon, title, value, sub, trend }: any) => (
 export default function Dashboard() {
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
+  const { user } = useUser();
+  const db = useFirestore();
 
   const handleGenerateReport = async () => {
     setIsGenerating(true);
     try {
+      const cropType = "Bio-Genic Tomato";
       const result = await aiGeneratedComprehensiveFarmReport({
-        farmerName: "Nexus Admin",
+        farmerName: user?.displayName || "Nexus Admin",
         farmLocation: "Sector 7G, Veridian Prime",
-        cropType: "Bio-Genic Tomato",
+        cropType: cropType,
         plantingDate: "2024-01-15",
         weatherData: {
           temperature: 24.5,
@@ -99,9 +96,20 @@ export default function Dashboard() {
         reportTimestamp: new Date().toISOString()
       });
 
+      // Save to Firestore
+      if (db && user) {
+        addDoc(collection(db, "reports"), {
+          userId: user.uid,
+          reportUrl: result.reportUrl,
+          cropType: cropType,
+          timestamp: new Date().toISOString(),
+          createdAt: serverTimestamp()
+        });
+      }
+
       toast({
         title: "Report Generated",
-        description: "Your AI farm report is ready for viewing.",
+        description: "Your AI farm report is ready and has been saved to your history.",
         action: (
           <Button variant="outline" size="sm" asChild>
             <a href={result.reportUrl} target="_blank" rel="noopener noreferrer">View PDF</a>
@@ -115,7 +123,7 @@ export default function Dashboard() {
         variant: "destructive",
         title: isApiKeyError ? "Configuration Required" : "Generation Failed",
         description: isApiKeyError 
-          ? "Please add a valid GEMINI_API_KEY to your .env file to enable AI reports."
+          ? "Please replace 'YOUR_API_KEY_HERE' in your .env file with your actual Google AI API key."
           : "An unexpected error occurred during report generation."
       });
     } finally {
@@ -141,7 +149,7 @@ export default function Dashboard() {
             <Button 
               onClick={handleGenerateReport} 
               disabled={isGenerating}
-              className="bg-primary text-primary-foreground hover:bg-primary/90 font-bold min-w-[160px]"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 font-bold min-w-[160px] neon-glow"
             >
               {isGenerating ? (
                 <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Analyzing...</>
@@ -161,7 +169,6 @@ export default function Dashboard() {
         </div>
 
         <div className="grid gap-6 lg:grid-cols-7">
-          {/* Main Chart */}
           <Card className="glass lg:col-span-4 border-white/5">
             <CardHeader>
               <CardTitle className="font-headline">Ecosystem Vitality</CardTitle>
@@ -191,7 +198,6 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          {/* Quick Tasks / Alerts */}
           <Card className="glass lg:col-span-3 border-white/5">
             <CardHeader>
               <CardTitle className="font-headline">Autonomous Alerts</CardTitle>
@@ -225,7 +231,6 @@ export default function Dashboard() {
           </Card>
         </div>
 
-        {/* Feature Teasers */}
         <div className="grid gap-6 md:grid-cols-3">
           <Link href="/diagnosis" className="group">
             <Card className="glass h-full hover:border-primary/50 transition-all overflow-hidden relative">
@@ -247,13 +252,13 @@ export default function Dashboard() {
               </CardHeader>
             </Card>
           </Link>
-          <Link href="/marketplace" className="group">
+          <Link href="/reports" className="group">
             <Card className="glass h-full hover:border-primary/50 transition-all overflow-hidden relative">
               <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
               <CardHeader>
-                <ShoppingCart className="h-8 w-8 text-primary mb-2" />
-                <CardTitle className="font-headline">Agri-Nexus</CardTitle>
-                <CardDescription>The global decentralized agriculture marketplace.</CardDescription>
+                <FileText className="h-8 w-8 text-primary mb-2" />
+                <CardTitle className="font-headline">Farm Reports</CardTitle>
+                <CardDescription>View and manage all your saved agricultural analysis.</CardDescription>
               </CardHeader>
             </Card>
           </Link>

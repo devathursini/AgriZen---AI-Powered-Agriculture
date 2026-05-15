@@ -1,10 +1,10 @@
+
 "use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { 
   LayoutDashboard, 
-  Search, 
   Bot, 
   ShoppingCart, 
   Users, 
@@ -15,13 +15,15 @@ import {
   Leaf,
   CloudRain,
   ShieldAlert,
-  Dna
+  Dna,
+  FileText
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/" },
   { icon: Dna, label: "Crop Diagnosis", href: "/diagnosis" },
+  { icon: FileText, label: "Reports", href: "/reports" },
   { icon: Bot, label: "AI Assistant", href: "/assistant" },
   { icon: BarChart3, label: "Analytics", href: "/analytics" },
   { icon: Droplets, label: "Smart Irrigation", href: "/irrigation" },
