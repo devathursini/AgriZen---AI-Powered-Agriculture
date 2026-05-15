@@ -2,12 +2,13 @@
 'use server';
 /**
  * @fileOverview A Genkit flow for generating a professional PDF report specifically for a crop diagnosis.
- *
- * - generateDiagnosisPdfReport - A function that orchestrates the generation of a detailed diagnosis report.
+ * 
+ * It uses PDFKit to generate a real PDF document as a base64 data URI.
  */
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import PDFDocument from 'pdfkit';
 
 const GenerateDiagnosisPdfInputSchema = z.object({
   identification: z.object({
@@ -45,11 +46,36 @@ const generateDiagnosisPdfTool = ai.defineTool(
     outputSchema: z.string().url(),
   },
   async (input) => {
-    console.log(`Generating Detailed Diagnosis PDF for: ${input.plantName}`);
-    console.log(`Diagnosis Summary: ${input.diagnosisResult}`);
-    // In a production environment, this tool would call a PDF generation service (like Puppeteer or a Cloud Function).
-    // Returning a stable sample PDF for the preview.
-    return "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf";
+    console.log(`Generating Real Diagnosis PDF for: ${input.plantName}`);
+    
+    const pdfBuffer = await new Promise<Buffer>((resolve, reject) => {
+      const doc = new PDFDocument({ margin: 50 });
+      const chunks: Buffer[] = [];
+      
+      doc.on('data', (chunk) => chunks.push(chunk));
+      doc.on('end', () => resolve(Buffer.concat(chunks)));
+      doc.on('error', reject);
+
+      // Header
+      doc.fontSize(24).fillColor('#00FF66').text('AGRIZEN AI', { align: 'center' });
+      doc.fontSize(16).fillColor('#333333').text('CROP DIAGNOSIS REPORT', { align: 'center' });
+      doc.moveDown();
+      doc.fontSize(10).fillColor('#666666').text(`Generated: ${new Date().toLocaleString()}`, { align: 'right' });
+      doc.moveDown();
+      doc.strokeColor('#00FF66').lineWidth(2).moveTo(50, doc.y).lineTo(550, doc.y).stroke();
+      doc.moveDown();
+
+      // Content
+      doc.fontSize(12).fillColor('#000000').text(input.content);
+      
+      // Footer
+      doc.moveDown(2);
+      doc.fontSize(10).fillColor('#999999').text('This report was generated using AgriZen Neural Vision Engine v4.0. Precision data for modern farming.', { align: 'center' });
+      
+      doc.end();
+    });
+
+    return `data:application/pdf;base64,${pdfBuffer.toString('base64')}`;
   }
 );
 
@@ -63,11 +89,6 @@ const generateDiagnosisPdfReportFlow = ai.defineFlow(
     const { identification, diagnosis, timestamp } = input;
     
     const reportContent = `
-=========================================
-AGRIZEN AI: CROP DIAGNOSIS REPORT
-=========================================
-Report Generated: ${new Date(timestamp).toLocaleString()}
-
 PLANT IDENTIFICATION
 -----------------------------------------
 Common Name: ${identification.commonName}
@@ -95,11 +116,6 @@ ${diagnosis.fertilizerRecommendations?.length ? diagnosis.fertilizerRecommendati
 ORGANIC FARMING SUGGESTIONS
 -----------------------------------------
 ${diagnosis.organicFarmingSuggestions?.length ? diagnosis.organicFarmingSuggestions.map(s => `- ${s}`).join('\n') : 'General organic maintenance recommended.'}
-
-=========================================
-This report was generated using AgriZen 
-Neural Vision Engine v4.0.
-=========================================
     `;
 
     const reportUrl = await generateDiagnosisPdfTool({
