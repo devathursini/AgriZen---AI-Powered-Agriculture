@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { 
   BarChart, 
   Bar, 
@@ -21,14 +22,29 @@ import {
   Activity, 
   Target, 
   Zap, 
-  Calendar, 
+  Database, 
   ArrowUpRight,
-  Database,
-  Globe
+  Brain,
+  Loader2,
+  AlertCircle,
+  Sprout,
+  DollarSign
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
+import { neuralYieldPrediction, type YieldPredictionOutput } from "@/ai/flows/neural-yield-prediction-engine";
+import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 const yieldData = [
   { month: "Jan", actual: 4000, projected: 4400 },
@@ -50,6 +66,39 @@ const cropDistribution = [
 const COLORS = ['#00FF66', '#CFFF00', '#00e5ff', '#7c4dff'];
 
 export default function AnalyticsPage() {
+  const [loading, setLoading] = useState(false);
+  const [prediction, setPrediction] = useState<YieldPredictionOutput | null>(null);
+  const { toast } = useToast();
+
+  const [formData, setFormData] = useState({
+    cropType: "Tomato",
+    areaSize: 10,
+    soilPh: 6.5,
+    expectedRainfall: 500,
+    avgTemperature: 25,
+  });
+
+  const handlePredict = async () => {
+    setLoading(true);
+    try {
+      const result = await neuralYieldPrediction(formData);
+      setPrediction(result);
+      toast({
+        title: "Prediction Complete",
+        description: "AI has calculated your expected yield index.",
+      });
+    } catch (err) {
+      console.error(err);
+      toast({
+        variant: "destructive",
+        title: "Prediction Failed",
+        description: "The neural engine was unable to process your request.",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-8">
       <div>
@@ -77,6 +126,162 @@ export default function AnalyticsPage() {
             </CardContent>
           </Card>
         ))}
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-3">
+        {/* Yield Prediction Tool */}
+        <Card className="glass lg:col-span-1 border-primary/20">
+          <CardHeader>
+            <CardTitle className="font-headline flex items-center gap-2">
+              <Brain className="h-5 w-5 text-primary" /> Neural Yield Predictor
+            </CardTitle>
+            <CardDescription>Calculate expected harvest using AI</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label className="text-xs uppercase">Crop Type</Label>
+              <Select value={formData.cropType} onValueChange={(v) => setFormData({...formData, cropType: v})}>
+                <SelectTrigger className="bg-white/5 border-white/10">
+                  <SelectValue placeholder="Select crop" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Tomato">Tomato</SelectItem>
+                  <SelectItem value="Wheat">Wheat</SelectItem>
+                  <SelectItem value="Corn">Corn</SelectItem>
+                  <SelectItem value="Potato">Potato</SelectItem>
+                  <SelectItem value="Rice">Rice</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-xs uppercase">Area (Acres)</Label>
+                <Input 
+                  type="number" 
+                  value={formData.areaSize} 
+                  onChange={(e) => setFormData({...formData, areaSize: Number(e.target.value)})}
+                  className="bg-white/5 border-white/10" 
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs uppercase">Soil pH</Label>
+                <Input 
+                  type="number" 
+                  step="0.1" 
+                  value={formData.soilPh} 
+                  onChange={(e) => setFormData({...formData, soilPh: Number(e.target.value)})}
+                  className="bg-white/5 border-white/10" 
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-xs uppercase">Rainfall (mm)</Label>
+                <Input 
+                  type="number" 
+                  value={formData.expectedRainfall} 
+                  onChange={(e) => setFormData({...formData, expectedRainfall: Number(e.target.value)})}
+                  className="bg-white/5 border-white/10" 
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs uppercase">Temp (°C)</Label>
+                <Input 
+                  type="number" 
+                  value={formData.avgTemperature} 
+                  onChange={(e) => setFormData({...formData, avgTemperature: Number(e.target.value)})}
+                  className="bg-white/5 border-white/10" 
+                />
+              </div>
+            </div>
+            <Button 
+              onClick={handlePredict} 
+              disabled={loading}
+              className="w-full bg-primary text-primary-foreground font-bold neon-glow mt-4"
+            >
+              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Run Prediction"}
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Prediction Results */}
+        <Card className="glass lg:col-span-2 relative overflow-hidden">
+          {prediction && (
+            <div className="absolute top-0 right-0 p-4">
+              <Badge className="bg-primary/20 text-primary border-primary/20">AI Verified</Badge>
+            </div>
+          )}
+          <CardHeader>
+            <CardTitle className="font-headline">Prediction Analytics</CardTitle>
+            <CardDescription>AI-generated yield insights and risk assessment</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {prediction ? (
+              <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
+                <div className="grid grid-cols-3 gap-6">
+                  <div className="p-4 rounded-xl bg-primary/10 border border-primary/20 space-y-1">
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Predicted Total</p>
+                    <div className="flex items-center gap-2">
+                      <Sprout className="h-4 w-4 text-primary" />
+                      <p className="text-2xl font-bold font-headline">{prediction.predictedYield} Tons</p>
+                    </div>
+                  </div>
+                  <div className="p-4 rounded-xl bg-white/5 border border-white/5 space-y-1">
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Est. Market Value</p>
+                    <div className="flex items-center gap-2">
+                      <DollarSign className="h-4 w-4 text-accent" />
+                      <p className="text-2xl font-bold font-headline">${prediction.marketValueEstimation.toLocaleString()}</p>
+                    </div>
+                  </div>
+                  <div className="p-4 rounded-xl bg-white/5 border border-white/5 space-y-1">
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">AI Confidence</p>
+                    <div className="flex items-center gap-2">
+                      <Brain className="h-4 w-4 text-primary" />
+                      <p className="text-2xl font-bold font-headline">{prediction.confidenceScore}%</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-8">
+                  <div className="space-y-4">
+                    <h4 className="text-xs font-bold uppercase tracking-widest flex items-center gap-2 text-destructive">
+                      <AlertCircle className="h-3 w-3" /> Risk Factors
+                    </h4>
+                    <div className="space-y-2">
+                      {prediction.riskFactors.map((risk, i) => (
+                        <div key={i} className="flex items-center gap-2 text-sm p-3 rounded-lg bg-destructive/5 border border-destructive/10">
+                          <span className="h-1.5 w-1.5 rounded-full bg-destructive" />
+                          {risk}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    <h4 className="text-xs font-bold uppercase tracking-widest flex items-center gap-2 text-primary">
+                      <Zap className="h-3 w-3" /> Optimization Steps
+                    </h4>
+                    <div className="space-y-2">
+                      {prediction.recommendations.map((rec, i) => (
+                        <div key={i} className="flex items-center gap-2 text-sm p-3 rounded-lg bg-primary/5 border border-primary/10">
+                          <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                          {rec}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="h-[300px] flex flex-col items-center justify-center text-center space-y-4 text-muted-foreground">
+                <Brain className="h-12 w-12 opacity-10" />
+                <div className="space-y-1">
+                  <p className="text-sm font-bold uppercase tracking-widest">Awaiting Neural Link</p>
+                  <p className="text-xs">Input your farm parameters and run the prediction engine.</p>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
