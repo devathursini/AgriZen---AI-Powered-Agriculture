@@ -47,7 +47,7 @@ export type ComprehensiveFarmReportInput = z.infer<typeof ComprehensiveFarmRepor
 
 // Output Schema
 const ComprehensiveFarmReportOutputSchema = z.object({
-  reportUrl: z.string().url().describe('URL to the generated comprehensive farm report in PDF format.'),
+  reportUrl: z.string().describe('The generated comprehensive farm report as a data URI.'),
 });
 export type ComprehensiveFarmReportOutput = z.infer<typeof ComprehensiveFarmReportOutputSchema>;
 
@@ -64,7 +64,7 @@ const generatePdfReportTool = ai.defineTool(
       cropType: z.string(),
       reportTimestamp: z.string(),
     }),
-    outputSchema: z.string().url().describe('The URL to the generated PDF report.'),
+    outputSchema: z.string().describe('The data URI of the generated PDF report.'),
   },
   async (input) => {
     console.log(`Generating Real Comprehensive PDF report for: ${input.reportTitle}`);
@@ -116,7 +116,7 @@ const generatePdfReportTool = ai.defineTool(
     // Calculate new y based on lines
     y += (splitText.length * 6) + 20;
 
-    // Footer
+    // Footer check
     if (y > doc.internal.pageSize.getHeight() - 40) {
       doc.addPage();
       y = 20;
@@ -132,7 +132,6 @@ const generatePdfReportTool = ai.defineTool(
     const splitFooter = doc.splitTextToSize(footerText, pageWidth - (margin * 2));
     doc.text(splitFooter, pageWidth / 2, y, { align: 'center' });
 
-    // Use datauristring for direct browser viewing/download
     return doc.output('datauristring');
   }
 );
@@ -167,7 +166,7 @@ REPORT START
 ## Zen Crop Disease Diagnosis:
 - Disease: {{diseaseDiagnosis.diseaseName}} ({{diseaseDiagnosis.severity}})
 - Confidence: {{diseaseDiagnosis.confidenceScore}}%
-- Treatments: {{#each diseaseDiagnosis.treatmentSuggestions}}{{this}}{{#unless @last}}, {{/unless}}{{/each}}
+- Treatments: {{#each diseaseDiagnosis.treatmentSuggestions}}{{this}}{{#unless @last}}, {{/each}}{{/each}}
 {{/if}}
 
 {{#if yieldPrediction}}
@@ -205,26 +204,22 @@ const aiGeneratedComprehensiveFarmReportFlow = ai.defineFlow(
 
     while (retries >= 0) {
       try {
-        // 1. Generate the textual summary using the prompt
         const { output: promptOutput } = await generateReportSummaryPrompt(input);
         reportSummary = promptOutput?.reportText;
-        break; // Success
+        break; 
       } catch (err: any) {
         lastError = err;
         const errMsg = err.message?.toLowerCase() || "";
         
-        // Detect transient errors including 429 Rate Limits and 503 Overloads
         const isRateLimit = errMsg.includes('429') || errMsg.includes('quota') || errMsg.includes('rate limit') || errMsg.includes('exhausted');
         const isOverload = errMsg.includes('503') || errMsg.includes('unavailable') || errMsg.includes('high demand');
 
         if ((isRateLimit || isOverload) && retries > 0) {
           const attempt = 5 - retries;
           retries--;
-          
-          // Exponential backoff
           const waitTime = isRateLimit ? 10000 * Math.pow(2, attempt) : 2000;
           
-          console.log(`AgriZen Neural Link (Report Flow): Rate limit or overload detected. Retrying in ${waitTime}ms... (Attempts left: ${retries + 1})`);
+          console.log(`AgriZen Neural Link (Report Flow): Quota or overload detected. Retrying in ${waitTime}ms... (${retries + 1} attempts left)`);
           await new Promise(resolve => setTimeout(resolve, waitTime));
           continue;
         }
@@ -236,7 +231,6 @@ const aiGeneratedComprehensiveFarmReportFlow = ai.defineFlow(
       throw lastError || new Error('Failed to generate report summary text.');
     }
 
-    // 2. Call the PDF generation tool with the summary and relevant metadata
     const reportUrl = await generatePdfReportTool({
       reportTitle: `AgriZen Farm Report for ${input.cropType} by ${input.farmerName}`,
       reportSummary: reportSummary,

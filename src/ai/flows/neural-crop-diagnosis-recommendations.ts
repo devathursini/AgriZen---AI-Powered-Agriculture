@@ -101,7 +101,7 @@ const neuralCropDiagnosisRecommendationsFlow = ai.defineFlow(
     outputSchema: NeuralCropDiagnosisRecommendationsOutputSchema,
   },
   async input => {
-    let retries = 5; // Increased retries
+    let retries = 5;
     let lastError: any;
 
     while (retries >= 0) {
@@ -115,7 +115,7 @@ const neuralCropDiagnosisRecommendationsFlow = ai.defineFlow(
         lastError = err;
         const errMsg = err.message?.toLowerCase() || "";
         
-        // Detect transient errors including 429 Rate Limits and 503 Overloads
+        // Detect transient errors: 429 (Rate Limit), 503 (Overload), or quota exhaustion
         const isRateLimit = errMsg.includes('429') || errMsg.includes('quota') || errMsg.includes('rate limit') || errMsg.includes('exhausted');
         const isOverload = errMsg.includes('503') || errMsg.includes('unavailable') || errMsg.includes('high demand');
 
@@ -123,11 +123,10 @@ const neuralCropDiagnosisRecommendationsFlow = ai.defineFlow(
           const attempt = 5 - retries;
           retries--;
           
-          // Exponential backoff: Rate limits (429) need significantly more time
-          // Attempt 1: 10s, Attempt 2: 20s, Attempt 3: 40s, Attempt 4: 80s
+          // Exponential backoff: Starts at 10s, grows to 80s
           const waitTime = isRateLimit ? 10000 * Math.pow(2, attempt) : 2000;
           
-          console.log(`AgriZen Neural Link: Rate limit or overload detected. Retrying in ${waitTime}ms... (Attempts left: ${retries + 1})`);
+          console.log(`AgriZen Neural Link: Quota or overload detected. Retrying in ${waitTime}ms... (${retries + 1} attempts left)`);
           await new Promise(resolve => setTimeout(resolve, waitTime));
           continue;
         }
