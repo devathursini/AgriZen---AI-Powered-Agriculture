@@ -87,12 +87,15 @@ export default function DiagnosisPage() {
         photoDataUri: image,
       });
       setResult(diagnosis);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+      const isApiKeyError = err.message?.includes("API key") || err.message?.includes("400");
       toast({
         variant: "destructive",
-        title: "Analysis Failed",
-        description: "Please ensure your API key is valid in the .env file."
+        title: isApiKeyError ? "AI Configuration Required" : "Analysis Failed",
+        description: isApiKeyError 
+          ? "The Gemini API key is missing or invalid. Please add a valid GEMINI_API_KEY to your .env file."
+          : "Please ensure your image is clear and try again."
       });
     } finally {
       setLoading(false);

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useRef, useEffect } from "react";
@@ -10,7 +11,8 @@ import {
   Globe, 
   MoreHorizontal,
   ChevronRight,
-  Plus
+  Plus,
+  AlertCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,6 +20,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { veridianAIAssistantChatbot } from "@/ai/flows/veridian-ai-assistant-chatbot";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
 type Message = {
   role: 'user' | 'model';
@@ -29,6 +32,7 @@ export default function AssistantPage() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -51,8 +55,24 @@ export default function AssistantPage() {
       });
       const modelMessage: Message = { role: 'model', parts: [{ text: response.response }] };
       setMessages(prev => [...prev, modelMessage]);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+      const isApiKeyError = err.message?.includes("API key") || err.message?.includes("400");
+      
+      const errorMessage = isApiKeyError 
+        ? "Veridian Assistant is currently offline due to a missing Gemini API key. Please check the .env configuration."
+        : "I'm having trouble connecting to the neural network. Please try again in a moment.";
+
+      setMessages(prev => [...prev, {
+        role: 'model',
+        parts: [{ text: errorMessage }]
+      }]);
+
+      toast({
+        variant: "destructive",
+        title: isApiKeyError ? "AI Service Offline" : "Connection Error",
+        description: isApiKeyError ? "GEMINI_API_KEY is invalid or missing in .env." : "Failed to get AI response."
+      });
     } finally {
       setLoading(false);
     }
@@ -113,7 +133,7 @@ export default function AssistantPage() {
               </div>
               <div className={cn(
                 "max-w-[80%] rounded-2xl p-4 text-sm leading-relaxed",
-                msg.role === 'model' ? "bg-white/5 text-foreground" : "bg-primary text-primary-foreground font-medium"
+                msg.role === 'model' ? (msg.parts[0].text.includes("Gemini API key") ? "bg-destructive/10 text-destructive border border-destructive/20" : "bg-white/5 text-foreground") : "bg-primary text-primary-foreground font-medium"
               )}>
                 {msg.parts[0].text}
               </div>

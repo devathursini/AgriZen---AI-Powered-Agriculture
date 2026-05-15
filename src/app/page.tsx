@@ -1,5 +1,7 @@
+
 "use client";
 
+import { useState } from "react";
 import { 
   BarChart, 
   Bar, 
@@ -25,7 +27,10 @@ import {
   ArrowRight,
   Dna,
   Bot,
-  ShoppingCart
+  ShoppingCart,
+  Loader2,
+  FileText,
+  CheckCircle2
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -33,6 +38,8 @@ import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import DashboardLayout from "./(dashboard)/layout";
 import { cn } from "@/lib/utils";
+import { aiGeneratedComprehensiveFarmReport } from "@/ai/flows/ai-generated-comprehensive-farm-report-flow";
+import { useToast } from "@/hooks/use-toast";
 
 const data = [
   { name: "Mon", health: 85, yield: 65 },
@@ -68,6 +75,54 @@ const StatCard = ({ icon: Icon, title, value, sub, trend }: any) => (
 );
 
 export default function Dashboard() {
+  const [isGenerating, setIsGenerating] = useState(false);
+  const { toast } = useToast();
+
+  const handleGenerateReport = async () => {
+    setIsGenerating(true);
+    try {
+      const result = await aiGeneratedComprehensiveFarmReport({
+        farmerName: "Nexus Admin",
+        farmLocation: "Sector 7G, Veridian Prime",
+        cropType: "Bio-Genic Tomato",
+        plantingDate: "2024-01-15",
+        weatherData: {
+          temperature: 24.5,
+          humidity: 62,
+          rainProbability: 12
+        },
+        soilData: {
+          soilType: "Loamy-Nexus",
+          phValue: 6.2,
+          moistureLevel: 58
+        },
+        reportTimestamp: new Date().toISOString()
+      });
+
+      toast({
+        title: "Report Generated",
+        description: "Your AI farm report is ready for viewing.",
+        action: (
+          <Button variant="outline" size="sm" asChild>
+            <a href={result.reportUrl} target="_blank" rel="noopener noreferrer">View PDF</a>
+          </Button>
+        )
+      });
+    } catch (err: any) {
+      console.error(err);
+      const isApiKeyError = err.message?.includes("API key") || err.message?.includes("400");
+      toast({
+        variant: "destructive",
+        title: isApiKeyError ? "Configuration Required" : "Generation Failed",
+        description: isApiKeyError 
+          ? "Please add a valid GEMINI_API_KEY to your .env file to enable AI reports."
+          : "An unexpected error occurred during report generation."
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-8">
@@ -83,8 +138,16 @@ export default function Dashboard() {
             <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20 px-4 py-1">
               <Activity className="mr-2 h-3 w-3 animate-pulse" /> Live
             </Badge>
-            <Button className="bg-primary text-primary-foreground hover:bg-primary/90 font-bold">
-              Generate Report
+            <Button 
+              onClick={handleGenerateReport} 
+              disabled={isGenerating}
+              className="bg-primary text-primary-foreground hover:bg-primary/90 font-bold min-w-[160px]"
+            >
+              {isGenerating ? (
+                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Analyzing...</>
+              ) : (
+                <><FileText className="mr-2 h-4 w-4" /> Generate Report</>
+              )}
             </Button>
           </div>
         </div>
