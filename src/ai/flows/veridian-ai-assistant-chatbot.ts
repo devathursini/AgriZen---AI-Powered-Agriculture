@@ -1,8 +1,8 @@
+
 'use server';
 /**
  * @fileOverview This file implements the Genkit flow for the Veridian AI Assistant Chatbot.
- * It provides an intelligent, context-aware, and multi-lingual chatbot for farmers,
- * offering advice on crop guidance, disease explanations, pest control, and farming tips.
+ * It provides an intelligent, context-aware, and multi-lingual chatbot for farmers.
  *
  * - veridianAIAssistantChatbot - A function that handles the chatbot interaction.
  * - VeridianAIAssistantChatbotInput - The input type for the veridianAIAssistantChatbot function.
@@ -45,12 +45,12 @@ const veridianAIAssistantChatbotFlow = ai.defineFlow(
       {
         role: 'system',
         content: [{
-          text: `You are an intelligent agriculture chatbot named Veridian Assistant. Your goal is to provide comprehensive and helpful advice to farmers on a wide range of topics including crop guidance, farming tips, fertilizer suggestions, disease explanations, irrigation guidance, pest control advice, weather-based recommendations, smart farming guidance, yield suggestions, and market advice. You are context-aware and can maintain multi-turn conversations. You can respond in English or Tamil, depending on the user's query.`
+          text: `You are an intelligent agriculture chatbot named Veridian Assistant. Your goal is to provide comprehensive and helpful advice to farmers. You can respond in English or Tamil. Current user query: ${input.query}`
         }]
       },
     ];
 
-    if (input.history) {
+    if (input.history && input.history.length > 0) {
       messages.push(...input.history);
     }
 
@@ -59,18 +59,30 @@ const veridianAIAssistantChatbotFlow = ai.defineFlow(
       content: [{ text: input.query }]
     });
 
-    const result = await ai.generate({
-      messages: messages,
-      config: {
-        maxOutputTokens: 1024,
-        temperature: 0.7,
-      },
-    });
+    try {
+      const result = await ai.generate({
+        messages: messages,
+        config: {
+          maxOutputTokens: 1024,
+          temperature: 0.7,
+        },
+      });
 
-    if (!result || !result.text) {
-      throw new Error('No text output received from the AI model.');
+      if (!result || !result.text) {
+        throw new Error('No response from AI model.');
+      }
+
+      return { response: result.text };
+    } catch (error: any) {
+      console.error('Genkit Generate Error:', error);
+      
+      if (error.message?.includes('API key not valid')) {
+        return { 
+          response: "Veridian Assistant is currently configuring its neural link (Invalid Gemini API Key). Please ensure the API key in .env is correct for Google AI Studio." 
+        };
+      }
+      
+      throw error;
     }
-
-    return { response: result.text };
   }
 );
