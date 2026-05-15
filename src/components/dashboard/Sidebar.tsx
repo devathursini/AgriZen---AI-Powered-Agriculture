@@ -1,7 +1,7 @@
 
 "use client";
 
-import Link from "next/link";
+import Link from "next/navigation";
 import { usePathname } from "next/navigation";
 import { 
   LayoutDashboard, 
@@ -22,7 +22,8 @@ import {
   AlertCircle,
   ExternalLink,
   RefreshCw,
-  Plane
+  Plane,
+  Key
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth, useUser } from "@/firebase";
@@ -72,8 +73,8 @@ export function Sidebar() {
         setAuthError("identity-blocked");
         toast({
           variant: "destructive",
-          title: "Critical Setup Required",
-          description: "Authentication is blocked. Please use the links in the sidebar to enable the service.",
+          title: "Setup Required",
+          description: "API key or Identity Toolkit is restricted. Check the sidebar links.",
         });
         return;
       }
@@ -112,25 +113,27 @@ export function Sidebar() {
             <div className="space-y-2">
               <AlertTitle className="text-xs font-bold uppercase tracking-wider">PROJECT SETUP REQUIRED</AlertTitle>
               <AlertDescription className="text-[10px] leading-normal">
-                <p className="mb-2 font-bold text-destructive">Authentication is currently disabled.</p>
+                <p className="mb-2 font-bold text-destructive">Sign-in is currently blocked.</p>
                 <div className="space-y-2 p-3 bg-black/40 rounded border border-destructive/20">
-                  <p className="text-[9px] text-muted-foreground mb-1">STEP 1:</p>
+                  <p className="text-[9px] text-muted-foreground mb-1 uppercase tracking-tighter">Check List:</p>
+                  
                   <a 
-                    href={`https://console.cloud.google.com/apis/library/identitytoolkit.googleapis.com?project=${projectId}`} 
+                    href="https://console.cloud.google.com/apis/credentials" 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="flex items-center justify-between text-destructive underline font-bold group hover:text-white transition-colors"
                   >
-                    Enable Identity API <ExternalLink className="h-2.5 w-2.5" />
+                    1. Check API Key Restrictions <Key className="h-2.5 w-2.5" />
                   </a>
-                  <p className="text-[9px] text-muted-foreground mb-1 mt-2">STEP 2:</p>
+                  <p className="text-[8px] opacity-70 mb-1 ml-2">Ensure "Identity Toolkit API" is allowed on your API key.</p>
+
                   <a 
                     href={`https://console.firebase.google.com/project/${projectId}/authentication/providers`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center justify-between text-destructive underline font-bold group hover:text-white transition-colors"
+                    className="flex items-center justify-between text-destructive underline font-bold group hover:text-white transition-colors mt-2"
                   >
-                    Enable Google Sign-In <ExternalLink className="h-2.5 w-2.5" />
+                    2. Enable Google Sign-In <ExternalLink className="h-2.5 w-2.5" />
                   </a>
                 </div>
                 <Button 
@@ -139,7 +142,7 @@ export function Sidebar() {
                   className="w-full text-[9px] h-8 mt-3 border-destructive/40 hover:bg-destructive text-white"
                   onClick={() => window.location.reload()}
                 >
-                  <RefreshCw className="mr-1 h-3 w-3" /> Click Here After Enabling
+                  <RefreshCw className="mr-1 h-3 w-3" /> Refresh App
                 </Button>
               </AlertDescription>
             </div>
@@ -150,7 +153,7 @@ export function Sidebar() {
           {menuItems.map((item) => {
             const isActive = pathname === item.href;
             return (
-              <Link
+              <a
                 key={item.href}
                 href={item.href}
                 className={cn(
@@ -165,7 +168,7 @@ export function Sidebar() {
                   isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
                 )} />
                 {item.label}
-              </Link>
+              </a>
             );
           })}
         </nav>
