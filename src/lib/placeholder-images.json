@@ -1,3 +1,28 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "hero-farm",
+      "description": "Futuristic indoor farm with neon lighting",
+      "imageUrl": "https://picsum.photos/seed/agri-hero/1200/600",
+      "imageHint": "indoor farm"
+    },
+    {
+      "id": "drone-shot",
+      "description": "Aerial drone view of a lush green farm",
+      "imageUrl": "https://picsum.photos/seed/agri-drone/800/400",
+      "imageHint": "farm aerial"
+    },
+    {
+      "id": "tomato-leaf",
+      "description": "Detailed shot of a tomato leaf",
+      "imageUrl": "https://picsum.photos/seed/tomato-leaf/400/400",
+      "imageHint": "tomato leaf"
+    },
+    {
+      "id": "avatar-expert",
+      "description": "Agriculture expert avatar",
+      "imageUrl": "https://picsum.photos/seed/expert/100/100",
+      "imageHint": "professional man"
+    }
+  ]
 }
