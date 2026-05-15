@@ -74,7 +74,7 @@ export function Sidebar() {
         toast({
           variant: "destructive",
           title: "Setup Required",
-          description: "API key or Identity Toolkit is restricted. Check the sidebar links.",
+          description: "API key or Identity Toolkit is restricted. Check the sidebar guide.",
         });
         return;
       }
@@ -111,35 +111,33 @@ export function Sidebar() {
           <Alert variant="destructive" className="bg-destructive/10 border-destructive/20 mb-4 animate-in fade-in slide-in-from-top-4 duration-500">
             <AlertCircle className="h-4 w-4 shrink-0" />
             <div className="space-y-2">
-              <AlertTitle className="text-xs font-bold uppercase tracking-wider">PROJECT SETUP REQUIRED</AlertTitle>
+              <AlertTitle className="text-xs font-bold uppercase tracking-wider">RESTRICTION DETECTED</AlertTitle>
               <AlertDescription className="text-[10px] leading-normal">
-                <p className="mb-2 font-bold text-destructive">Sign-in is currently blocked.</p>
-                <div className="space-y-2 p-3 bg-black/40 rounded border border-destructive/20">
-                  <p className="text-[9px] text-muted-foreground mb-1 uppercase tracking-tighter">Check List:</p>
-                  
+                <p className="mb-2 text-destructive font-bold">API Key is blocking Auth.</p>
+                <div className="space-y-2 p-2 bg-black/40 rounded border border-destructive/20">
                   <a 
                     href="https://console.cloud.google.com/apis/credentials" 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="flex items-center justify-between text-destructive underline font-bold group hover:text-white transition-colors"
                   >
-                    1. Check API Key Restrictions <Key className="h-2.5 w-2.5" />
+                    1. Check Key Restrictions <Key className="h-2.5 w-2.5" />
                   </a>
-                  <p className="text-[8px] opacity-70 mb-1 ml-2">Ensure "Identity Toolkit API" is allowed on your API key.</p>
+                  <p className="text-[8px] opacity-70 mb-1 ml-1 leading-tight">Add "Identity Toolkit API" to your key's allowed list.</p>
 
                   <a 
                     href={`https://console.firebase.google.com/project/${projectId}/authentication/providers`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center justify-between text-destructive underline font-bold group hover:text-white transition-colors mt-2"
+                    className="flex items-center justify-between text-destructive underline font-bold group hover:text-white transition-colors mt-1"
                   >
-                    2. Enable Google Sign-In <ExternalLink className="h-2.5 w-2.5" />
+                    2. Enable Google Provider <ExternalLink className="h-2.5 w-2.5" />
                   </a>
                 </div>
                 <Button 
                   size="sm" 
                   variant="outline" 
-                  className="w-full text-[9px] h-8 mt-3 border-destructive/40 hover:bg-destructive text-white"
+                  className="w-full text-[9px] h-8 mt-2 border-destructive/40 hover:bg-destructive text-white"
                   onClick={() => window.location.reload()}
                 >
                   <RefreshCw className="mr-1 h-3 w-3" /> Refresh App

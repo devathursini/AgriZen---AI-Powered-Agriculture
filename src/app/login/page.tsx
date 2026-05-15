@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Sprout, LogIn, Loader2, AlertCircle, Key, ExternalLink, RefreshCw } from "lucide-react";
+import { Sprout, LogIn, Loader2, AlertCircle, Key, ExternalLink, RefreshCw, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useAuth, useUser } from "@/firebase";
@@ -45,8 +45,8 @@ export default function LoginPage() {
         setAuthError("identity-blocked");
         toast({
           variant: "destructive",
-          title: "Setup Required",
-          description: "Firebase Authentication service is restricted in this project.",
+          title: "Critical Setup Required",
+          description: "Your project's API Key is currently restricting authentication.",
         });
       } else {
         toast({
@@ -83,41 +83,59 @@ export default function LoginPage() {
         </CardHeader>
         <CardContent className="space-y-6">
           {authError === "identity-blocked" ? (
-            <Alert variant="destructive" className="bg-destructive/10 border-destructive/20 animate-in fade-in slide-in-from-top-4 duration-500">
-              <AlertCircle className="h-4 w-4 shrink-0" />
-              <div className="space-y-3">
-                <AlertTitle className="text-xs font-bold uppercase tracking-wider">PROJECT SETUP REQUIRED</AlertTitle>
-                <div className="text-[11px] leading-relaxed">
-                  <p className="mb-2 font-bold text-destructive">Google Identity Toolkit API is currently blocked.</p>
-                  <div className="space-y-2 p-3 bg-black/40 rounded border border-destructive/20">
+            <div className="space-y-4 animate-in fade-in slide-in-from-top-4 duration-500">
+              <Alert variant="destructive" className="bg-destructive/10 border-destructive/20">
+                <AlertCircle className="h-4 w-4 shrink-0" />
+                <div className="space-y-2">
+                  <AlertTitle className="text-xs font-bold uppercase tracking-wider">PROJECT KEY RESTRICTED</AlertTitle>
+                  <AlertDescription className="text-[11px] leading-relaxed">
+                    Google is blocking this request because the <strong>Identity Toolkit API</strong> is not allowed on your API key.
+                  </AlertDescription>
+                </div>
+              </Alert>
+
+              <div className="p-4 rounded-xl bg-white/5 border border-white/10 space-y-4">
+                <h4 className="text-xs font-bold uppercase tracking-widest text-primary flex items-center gap-2">
+                  <CheckCircle2 className="h-3 w-3" /> Step-by-Step Fix
+                </h4>
+                <div className="space-y-3">
+                  <div className="flex flex-col gap-1">
+                    <p className="text-[10px] text-muted-foreground uppercase">1. Edit API Key</p>
                     <a 
                       href="https://console.cloud.google.com/apis/credentials" 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="flex items-center justify-between text-destructive underline font-bold hover:text-white transition-colors"
+                      className="flex items-center justify-between p-2 rounded bg-black/40 border border-white/5 hover:border-primary/50 text-xs font-bold text-white transition-all group"
                     >
-                      1. Check API Key Restrictions <Key className="h-3 w-3" />
+                      Open Credentials Console <ExternalLink className="h-3 w-3 group-hover:text-primary" />
                     </a>
+                    <p className="text-[9px] text-muted-foreground mt-1">
+                      Find your key (likely named "Browser key"), click it, and set <strong>API Restrictions</strong> to "Don't restrict" OR add "Identity Toolkit API".
+                    </p>
+                  </div>
+
+                  <div className="flex flex-col gap-1">
+                    <p className="text-[10px] text-muted-foreground uppercase">2. Enable Provider</p>
                     <a 
                       href={`https://console.firebase.google.com/project/${projectId}/authentication/providers`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center justify-between text-destructive underline font-bold hover:text-white transition-colors"
+                      className="flex items-center justify-between p-2 rounded bg-black/40 border border-white/5 hover:border-primary/50 text-xs font-bold text-white transition-all group"
                     >
-                      2. Enable Google Provider <ExternalLink className="h-3 w-3" />
+                      Enable Google Sign-In <ExternalLink className="h-3 w-3 group-hover:text-primary" />
                     </a>
                   </div>
                 </div>
                 <Button 
                   size="sm" 
                   variant="outline" 
-                  className="w-full text-xs h-9 border-destructive/40 hover:bg-destructive text-white"
+                  className="w-full text-xs h-10 border-primary/20 hover:bg-primary text-white"
                   onClick={() => window.location.reload()}
                 >
-                  <RefreshCw className="mr-2 h-3 w-3" /> Refresh After Fixing
+                  <RefreshCw className="mr-2 h-3 w-3" /> I've done this, refresh now
                 </Button>
               </div>
-            </Alert>
+            </div>
           ) : (
             <div className="space-y-4">
               <p className="text-sm text-center text-muted-foreground leading-relaxed">
@@ -145,7 +163,6 @@ export default function LoginPage() {
         </CardContent>
       </Card>
 
-      {/* Visual background details */}
       <div className="absolute top-0 right-0 p-20 opacity-10 blur-3xl">
         <div className="h-64 w-64 rounded-full bg-primary" />
       </div>
