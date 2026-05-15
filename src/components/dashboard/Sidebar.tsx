@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -20,7 +21,9 @@ import {
   Loader2,
   AlertCircle,
   ExternalLink,
-  ChevronDown
+  ChevronDown,
+  RefreshCw,
+  Info
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth, useUser } from "@/firebase";
@@ -61,16 +64,17 @@ export function Sidebar() {
     } catch (error: any) {
       console.error("Sign in failed", error);
       
-      const isIdentityBlocked = error.message?.toLowerCase().includes('identitytoolkit') || 
+      const errorMsg = error.message?.toLowerCase() || "";
+      const isIdentityBlocked = errorMsg.includes('identitytoolkit') || 
                                 error.code?.includes('api-blocked') ||
-                                error.message?.toLowerCase().includes('blocked');
+                                errorMsg.includes('blocked');
       
       if (isIdentityBlocked) {
         setAuthError("identity-blocked");
         toast({
           variant: "destructive",
-          title: "API Activation Required",
-          description: "The Identity Toolkit API must be enabled in Google Cloud to allow sign-in.",
+          title: "API Activation Pending",
+          description: "The Identity Toolkit API is either disabled or still propagating. See the sidebar for instructions.",
         });
         return;
       }
@@ -113,27 +117,44 @@ export function Sidebar() {
         {authError === "identity-blocked" && (
           <Alert variant="destructive" className="bg-destructive/10 border-destructive/20 mb-4 animate-in fade-in slide-in-from-top-4 duration-500">
             <AlertCircle className="h-4 w-4" />
-            <AlertTitle className="text-xs font-bold uppercase tracking-wider">API Blocked</AlertTitle>
+            <AlertTitle className="text-xs font-bold uppercase tracking-wider">Auth Sync Required</AlertTitle>
             <AlertDescription className="text-[10px] space-y-3 mt-1">
-              <p>Identity Toolkit API is disabled for project <strong>{projectId}</strong>.</p>
+              <p>The API was enabled, but hasn't synced with your API Key yet.</p>
               <div className="space-y-3">
-                <Button variant="link" className="p-0 h-auto text-[10px] text-destructive underline font-bold text-left block" asChild>
-                  <a 
-                    href={`https://console.cloud.google.com/apis/library/identitytoolkit.googleapis.com?project=${projectId}`} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                  >
-                    1. Click here to Enable API <ExternalLink className="ml-1 h-2 w-2 inline" />
-                  </a>
-                </Button>
                 <div className="p-2 bg-black/20 rounded border border-destructive/10 space-y-1">
-                  <p className="font-bold text-[9px] text-foreground uppercase">Can't see project?</p>
+                  <p className="font-bold text-[9px] text-foreground uppercase">Mandatory Next Steps:</p>
                   <ol className="list-decimal pl-3 space-y-1 text-[9px] text-muted-foreground">
-                    <li>Check the <strong>account switcher</strong> (top-right icon).</li>
-                    <li>Use the <strong>project dropdown</strong> next to the Cloud logo.</li>
-                    <li>Select the <strong>"All"</strong> tab to find {projectId}.</li>
+                    <li>
+                      <a 
+                        href={`https://console.firebase.google.com/project/${projectId}/authentication/providers`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-destructive underline font-bold"
+                      >
+                        1. Enable Google Provider in Firebase Console <ExternalLink className="h-2 w-2 inline" />
+                      </a>
+                    </li>
+                    <li>
+                      <a 
+                        href={`https://console.cloud.google.com/apis/library/identitytoolkit.googleapis.com?project=${projectId}`} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-destructive underline font-bold"
+                      >
+                        2. Confirm "Identity Toolkit" is ENABLED <ExternalLink className="h-2 w-2 inline" />
+                      </a>
+                    </li>
+                    <li>Wait 60 seconds and refresh this page.</li>
                   </ol>
                 </div>
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  className="w-full text-[9px] h-7 border-destructive/20 hover:bg-destructive/20"
+                  onClick={() => window.location.reload()}
+                >
+                  <RefreshCw className="mr-1 h-3 w-3" /> Refresh App Now
+                </Button>
               </div>
             </AlertDescription>
           </Alert>
@@ -205,12 +226,6 @@ export function Sidebar() {
           </div>
         ) : (
           <div className="space-y-2">
-            {!process.env.NEXT_PUBLIC_FIREBASE_API_KEY || process.env.NEXT_PUBLIC_FIREBASE_API_KEY.includes('YOUR_') ? (
-              <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-[10px] text-destructive flex items-start gap-2">
-                <AlertCircle className="h-3 w-3 shrink-0 mt-0.5" />
-                <p>Firebase API Key missing in .env</p>
-              </div>
-            ) : null}
             <Button 
               onClick={handleSignIn}
               variant="outline" 
@@ -218,6 +233,11 @@ export function Sidebar() {
             >
               <LogIn className="mr-2 h-4 w-4" /> Sign In
             </Button>
+            <div className="px-3">
+              <p className="text-[9px] text-muted-foreground text-center leading-relaxed">
+                By signing in, you connect your personal agronomist history.
+              </p>
+            </div>
           </div>
         )}
       </div>
