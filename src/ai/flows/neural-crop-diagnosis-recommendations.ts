@@ -81,7 +81,7 @@ const prompt = ai.definePrompt({
   name: 'neuralCropDiagnosisRecommendationsPrompt',
   input: {schema: NeuralCropDiagnosisRecommendationsInputSchema},
   output: {schema: NeuralCropDiagnosisRecommendationsOutputSchema},
-  prompt: `You are an expert botanist, plant pathologist, and agricultural advisor. Your task is to analyze the provided image of a crop or leaf to detect any diseases, pests, or nutrient deficiencies.
+  prompt: `You are an expert botanist, plant pathology, and agricultural advisor. Your task is to analyze the provided image of a crop or leaf to detect any diseases, pests, or nutrient deficiencies.
 Based on your analysis, you must provide a comprehensive diagnosis including identification, health status, confidence score, severity, detailed description of the problem, and actionable treatment suggestions.
 If the plant is not healthy, specify the disease/pest/deficiency.
 Provide specific fertilizer recommendations if applicable, and always include organic farming suggestions.
@@ -101,10 +101,27 @@ const neuralCropDiagnosisRecommendationsFlow = ai.defineFlow(
     outputSchema: NeuralCropDiagnosisRecommendationsOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
-    if (!output) {
-      throw new Error('Failed to get a valid diagnosis from the AI.');
+    let retries = 2;
+    let lastError: any;
+
+    while (retries >= 0) {
+      try {
+        const {output} = await prompt(input);
+        if (!output) {
+          throw new Error('Failed to get a valid diagnosis from the AI.');
+        }
+        return output;
+      } catch (err: any) {
+        lastError = err;
+        const isTransient = err.message?.includes('503') || err.message?.includes('UNAVAILABLE') || err.message?.includes('high demand');
+        if (isTransient && retries > 0) {
+          retries--;
+          await new Promise(resolve => setTimeout(resolve, 1500));
+          continue;
+        }
+        throw err;
+      }
     }
-    return output;
+    throw lastError;
   }
 );

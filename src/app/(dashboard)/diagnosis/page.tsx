@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useRef } from "react";
@@ -90,12 +89,16 @@ export default function DiagnosisPage() {
     } catch (err: any) {
       console.error(err);
       const isApiKeyError = err.message?.includes("API key") || err.message?.includes("400");
+      const isBusyError = err.message?.includes("503") || err.message?.includes("UNAVAILABLE") || err.message?.includes("high demand");
+      
       toast({
         variant: "destructive",
-        title: isApiKeyError ? "AI Configuration Required" : "Analysis Failed",
+        title: isApiKeyError ? "AI Configuration Required" : (isBusyError ? "AI Service Busy" : "Analysis Failed"),
         description: isApiKeyError 
-          ? "The Gemini API key is missing or invalid. Please add a valid GEMINI_API_KEY to your .env file."
-          : "Please ensure your image is clear and try again."
+          ? "The Gemini API key is missing or invalid. Please check your .env file."
+          : (isBusyError 
+              ? "Veridian's neural processors are currently overloaded. Please wait 10 seconds and try again."
+              : "Please ensure your image is clear and try again.")
       });
     } finally {
       setLoading(false);
@@ -220,21 +223,6 @@ export default function DiagnosisPage() {
             </CardContent>
             <canvas ref={canvasRef} className="hidden" />
           </Card>
-
-          {loading && (
-            <Card className="glass border-primary/20 animate-pulse">
-              <CardContent className="p-6 space-y-4">
-                <div className="flex items-center gap-4">
-                  <Dna className="h-8 w-8 text-primary animate-spin" />
-                  <div className="space-y-1">
-                    <p className="font-bold">Analyzing cellular structures...</p>
-                    <p className="text-xs text-muted-foreground">Identifying phenotype markers and disease vectors</p>
-                  </div>
-                </div>
-                <Progress value={66} className="h-2 bg-white/5" />
-              </CardContent>
-            </Card>
-          )}
         </div>
 
         <div className="space-y-6">
@@ -312,26 +300,6 @@ export default function DiagnosisPage() {
                         <><FileText className="mr-2 h-4 w-4" /> Save Report</>
                       )}
                     </Button>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="glass border-accent/20">
-                <CardHeader>
-                  <CardTitle className="text-sm font-bold uppercase text-accent tracking-widest font-headline">Expert Advice</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <p className="text-sm italic leading-relaxed text-muted-foreground">
-                    "Based on current satellite weather forecasts, humidity in your region will rise by 15% tomorrow. This might accelerate the spread of the detected condition. Consider applying organic fungicides immediately."
-                  </p>
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-full bg-accent/20 border border-accent/30 flex items-center justify-center">
-                       <Dna className="h-5 w-5 text-accent" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-bold">Dr. Elena Veridian</p>
-                      <p className="text-[10px] text-muted-foreground">Lead Plant Pathologist</p>
-                    </div>
                   </div>
                 </CardContent>
               </Card>

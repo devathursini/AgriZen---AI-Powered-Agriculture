@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -119,12 +118,16 @@ export default function Dashboard() {
     } catch (err: any) {
       console.error(err);
       const isApiKeyError = err.message?.includes("API key") || err.message?.includes("400");
+      const isBusyError = err.message?.includes("503") || err.message?.includes("UNAVAILABLE") || err.message?.includes("high demand");
+
       toast({
         variant: "destructive",
-        title: isApiKeyError ? "Configuration Required" : "Generation Failed",
+        title: isApiKeyError ? "Configuration Required" : (isBusyError ? "AI Service Busy" : "Generation Failed"),
         description: isApiKeyError 
-          ? "Please replace 'YOUR_API_KEY_HERE' in your .env file with your actual Google AI API key."
-          : "An unexpected error occurred during report generation."
+          ? "Please replace your API key in the .env file."
+          : (isBusyError 
+              ? "Google's AI servers are under heavy load. Please try generating the report again in a few moments." 
+              : "An unexpected error occurred during report generation.")
       });
     } finally {
       setIsGenerating(false);
