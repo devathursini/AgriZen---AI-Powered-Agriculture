@@ -19,7 +19,8 @@ import {
   FileText,
   LogIn,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  ExternalLink
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth, useUser } from "@/firebase";
@@ -27,6 +28,7 @@ import { signInWithPopup, GoogleAuthProvider, signOut } from "firebase/auth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import React from "react";
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/" },
@@ -54,9 +56,30 @@ export function Sidebar() {
     } catch (error: any) {
       console.error("Sign in failed", error);
       
+      const isIdentityBlocked = error.message?.includes('identitytoolkit') || error.code?.includes('api-blocked');
+      const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
+
+      if (isIdentityBlocked) {
+        toast({
+          variant: "destructive",
+          title: "API Activation Required",
+          description: (
+            <div className="space-y-2">
+              <p>The Identity Toolkit API must be enabled for your project to allow sign-in.</p>
+              <Button variant="link" className="p-0 h-auto text-xs text-white underline decoration-white/50" asChild>
+                <a href={`https://console.cloud.google.com/apis/library/identitytoolkit.googleapis.com?project=${projectId}`} target="_blank" rel="noopener noreferrer">
+                  Enable API in Google Cloud <ExternalLink className="ml-1 h-3 w-3" />
+                </a>
+              </Button>
+            </div>
+          ),
+        });
+        return;
+      }
+
       let message = "Could not complete sign in.";
-      if (error.code === 'auth/auth-domain-config-required' || error.message?.includes('identitytoolkit')) {
-        message = "Firebase Auth is not fully configured. Please enable the Identity Toolkit API and add your Auth Domain to the .env file.";
+      if (error.code === 'auth/auth-domain-config-required') {
+        message = "Firebase Auth is not fully configured. Please add your Auth Domain to the .env file.";
       } else if (error.code === 'auth/operation-not-allowed') {
         message = "Google Sign-In is not enabled in your Firebase Console.";
       }
@@ -80,8 +103,8 @@ export function Sidebar() {
   return (
     <div className="flex h-screen w-64 flex-col bg-sidebar border-r border-sidebar-border/50">
       <div className="flex h-20 items-center gap-3 px-6">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary neon-glow">
-          <Leaf className="h-6 w-6 text-primary-foreground" />
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary neon-glow text-primary-foreground">
+          <Leaf className="h-6 w-6" />
         </div>
         <span className="font-headline text-xl font-bold tracking-tight text-primary">
           VERIDIAN IQ
