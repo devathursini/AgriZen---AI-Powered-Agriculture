@@ -113,17 +113,22 @@ export function Sidebar() {
           <Alert variant="destructive" className="bg-destructive/10 border-destructive/20 mb-4 animate-in fade-in slide-in-from-top-4 duration-500">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle className="text-xs font-bold uppercase tracking-wider">API Blocked</AlertTitle>
-            <AlertDescription className="text-[10px] space-y-2 mt-1">
-              <p>Identity Toolkit API is disabled for this project.</p>
-              <Button variant="link" className="p-0 h-auto text-[10px] text-destructive underline font-bold" asChild>
-                <a 
-                  href={`https://console.cloud.google.com/apis/library/identitytoolkit.googleapis.com?project=${projectId}`} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                >
-                  Enable API Now <ExternalLink className="ml-1 h-2 w-2" />
-                </a>
-              </Button>
+            <AlertDescription className="text-[10px] space-y-3 mt-1">
+              <p>Identity Toolkit API is disabled for project <strong>{projectId}</strong>.</p>
+              <div className="space-y-2">
+                <Button variant="link" className="p-0 h-auto text-[10px] text-destructive underline font-bold text-left" asChild>
+                  <a 
+                    href={`https://console.cloud.google.com/apis/library/identitytoolkit.googleapis.com?project=${projectId}`} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                  >
+                    1. Enable API Now <ExternalLink className="ml-1 h-2 w-2 inline" />
+                  </a>
+                </Button>
+                <p className="text-[9px] text-muted-foreground italic leading-tight">
+                  Note: If you don't see the project, switch to the correct Google account in the top-right corner of the Cloud Console.
+                </p>
+              </div>
             </AlertDescription>
           </Alert>
         )}

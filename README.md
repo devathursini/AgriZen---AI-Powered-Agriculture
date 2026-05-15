@@ -15,7 +15,8 @@ To enable user login and saving reports, you must complete these **three** steps
 ### A. Enable Identity Toolkit API (The "Blocked" Error Fix)
 This is the most common cause of the "Requests to this API are blocked" error.
 1. Click this link: [Enable Identity Toolkit API](https://console.cloud.google.com/apis/library/identitytoolkit.googleapis.com?project=studio-4318523135-2e5de).
-2. Click the **ENABLE** button.
+2. **Crucial:** In the top-right corner of the page, ensure you are logged into the **correct Google account** that owns the Firebase project.
+3. Click the **ENABLE** button.
 
 ### B. Enable Google Sign-In Provider
 1. Go to the [Firebase Console](https://console.firebase.google.com/project/studio-4318523135-2e5de/authentication/providers).
@@ -27,12 +28,17 @@ This is the most common cause of the "Requests to this API are blocked" error.
 2. Scroll down to **Your apps** and copy the configuration object.
 3. Update your `.env` file with your specific values.
 
-## 3. Enable Firestore Database
+## 3. Troubleshooting: "I cannot see my project"
+If you click the link and the project is not found:
+- **Account Switcher**: Click your profile picture in the top-right of the Google Cloud Console. Select the account you used to create the Firebase project.
+- **Project Selection**: Use the project dropdown next to the "Google Cloud" logo at the top left to manually search for `studio-4318523135-2e5de`.
+
+## 4. Enable Firestore Database
 1. Go to [Firestore Database](https://console.firebase.google.com/project/studio-4318523135-2e5de/firestore).
 2. Click **Create database**.
 3. Start in **test mode** (for development) and select a location.
 
-## 4. Development
+## 5. Development
 Run the app locally:
 ```bash
 npm run dev
