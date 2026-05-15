@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useMemo, useState, useEffect } from "react";
@@ -11,7 +12,8 @@ import {
   Loader2,
   ChevronRight,
   AlertCircle,
-  History
+  History,
+  Download
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -94,9 +96,6 @@ export default function DiagnosisHistoryPage() {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <Button variant="outline" className="border-white/10 hover:bg-white/5">
-          <Filter className="mr-2 h-4 w-4" /> Filters
-        </Button>
       </div>
 
       <div className="grid gap-4">
@@ -136,16 +135,16 @@ export default function DiagnosisHistoryPage() {
                         <span className="h-1 w-1 rounded-full bg-white/10" />
                         <span className="text-primary font-mono">{d.diagnosis?.confidenceScore}% Confidence</span>
                       </div>
-                      {!d.diagnosis?.isHealthy && (
-                        <div className="flex items-center gap-2 p-2 rounded bg-destructive/5 border border-destructive/10 text-xs text-destructive mt-2">
-                          <AlertCircle className="h-3 w-3" />
-                          <span className="font-bold">{d.diagnosis?.diseaseName}</span>
-                          <span className="text-muted-foreground truncate opacity-70">— {d.diagnosis?.description}</span>
-                        </div>
-                      )}
                     </div>
                     <div className="flex items-center justify-between mt-2">
                       <div className="flex gap-2">
+                        {d.reportUrl && (
+                          <Button variant="accent" size="sm" asChild>
+                            <a href={d.reportUrl} target="_blank" rel="noopener noreferrer">
+                              <Download className="mr-2 h-4 w-4" /> Download PDF
+                            </a>
+                          </Button>
+                        )}
                         <Button variant="outline" size="sm" className="border-white/10 hover:bg-white/5" asChild>
                           <Link href={`/diagnosis?view=${d.id}`}>
                             Details <ChevronRight className="ml-2 h-4 w-4" />
@@ -173,7 +172,7 @@ export default function DiagnosisHistoryPage() {
             </div>
             <div className="space-y-2">
               <h3 className="text-2xl font-bold font-headline">Neural Records Empty</h3>
-              <p className="text-muted-foreground max-w-sm mx-auto">You haven't saved any AI crop diagnoses yet. Run a scan to build your farm's health history.</p>
+              <p className="text-muted-foreground max-w-sm mx-auto">You haven't saved any AI crop diagnoses yet.</p>
             </div>
             <Button asChild className="bg-primary text-primary-foreground font-bold neon-glow px-8">
               <Link href="/diagnosis">Start First Diagnosis</Link>

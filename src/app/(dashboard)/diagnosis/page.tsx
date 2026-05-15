@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useRef } from "react";
@@ -13,13 +14,15 @@ import {
   RefreshCw,
   FileText,
   LogIn,
-  History
+  History,
+  Download
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { neuralCropDiagnosisRecommendations, type NeuralCropDiagnosisRecommendationsOutput } from "@/ai/flows/neural-crop-diagnosis-recommendations";
+import { generateDiagnosisPdfReport } from "@/ai/flows/generate-diagnosis-pdf-flow";
 import { cn } from "@/lib/utils";
 import { useFirestore, useUser, useAuth } from "@/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
@@ -33,6 +36,7 @@ export default function DiagnosisPage() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [result, setResult] = useState<NeuralCropDiagnosisRecommendationsOutput | null>(null);
+  const [reportUrl, setReportUrl] = useState<string | null>(null);
   const [showCamera, setShowCamera] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -72,6 +76,7 @@ export default function DiagnosisPage() {
       reader.onloadend = () => {
         setImage(reader.result as string);
         setResult(null);
+        setReportUrl(null);
       };
       reader.readAsDataURL(file);
     }
@@ -102,7 +107,7 @@ export default function DiagnosisPage() {
         canvasRef.current.width = videoRef.current.videoWidth;
         canvasRef.current.height = videoRef.current.videoHeight;
         context.drawImage(videoRef.current, 0, 0);
-        const dataUri = canvasRef.current.toDataURL("image/jpeg", 0.8); // Use 0.8 quality to reduce size
+        const dataUri = canvasRef.current.toDataURL("image/jpeg", 0.8);
         setImage(dataUri);
         setShowCamera(false);
         const stream = videoRef.current.srcObject as MediaStream;
@@ -124,7 +129,7 @@ export default function DiagnosisPage() {
       toast({
         variant: "destructive",
         title: "Analysis Failed",
-        description: "AgriZen's neural vision engine could not process the image. Please try again with a clearer shot."
+        description: "AgriZen's neural vision engine could not process the image."
       });
     } finally {
       setLoading(false);
@@ -149,58 +154,65 @@ export default function DiagnosisPage() {
 
     setSaving(true);
 
-    const diagnosisData = {
-      userId: user.uid,
-      imageUri: image,
-      identification: result.identification,
-      diagnosis: result.diagnosis,
-      timestamp: new Date().toISOString(),
-      createdAt: serverTimestamp()
-    };
-
-    addDoc(collection(db, "diagnoses"), diagnosisData)
-      .then(() => {
-        toast({
-          title: "Report Saved",
-          description: "Diagnosis has been stored in your AgriZen history.",
-          action: (
-            <Button variant="outline" size="sm" onClick={() => router.push('/diagnosis/history')}>
-              View History
-            </Button>
-          )
-        });
-      })
-      .catch(async (error) => {
-        console.error("Firestore Save Error:", error);
-        if (error.code === 'permission-denied') {
-          const permissionError = new FirestorePermissionError({
-            path: "diagnoses",
-            operation: "create",
-            requestResourceData: diagnosisData,
-          });
-          errorEmitter.emit("permission-error", permissionError);
-        } else if (error.message?.includes('too large')) {
-          toast({
-            variant: "destructive",
-            title: "Data Too Large",
-            description: "The image size exceeds Firestore limits. Try a smaller photo."
-          });
-        } else {
-          toast({
-            variant: "destructive",
-            title: "Save Failed",
-            description: error.message || "An unexpected error occurred."
-          });
-        }
-      })
-      .finally(() => {
-        setSaving(false);
+    try {
+      // 1. Generate the PDF Report first
+      const pdfResult = await generateDiagnosisPdfReport({
+        identification: result.identification,
+        diagnosis: {
+          ...result.diagnosis,
+          diseaseName: result.diagnosis.diseaseName || 'None',
+        } as any,
+        timestamp: new Date().toISOString()
       });
+
+      setReportUrl(pdfResult.reportUrl);
+
+      // 2. Save everything to Firestore
+      const diagnosisData = {
+        userId: user.uid,
+        imageUri: image,
+        identification: result.identification,
+        diagnosis: result.diagnosis,
+        reportUrl: pdfResult.reportUrl,
+        timestamp: new Date().toISOString(),
+        createdAt: serverTimestamp()
+      };
+
+      await addDoc(collection(db, "diagnoses"), diagnosisData);
+      
+      toast({
+        title: "Report Saved",
+        description: "Diagnosis and PDF report have been stored in your history.",
+        action: (
+          <Button variant="outline" size="sm" onClick={() => router.push('/diagnosis/history')}>
+            View History
+          </Button>
+        )
+      });
+    } catch (error: any) {
+      console.error("Save Error:", error);
+      if (error.code === 'permission-denied') {
+        const permissionError = new FirestorePermissionError({
+          path: "diagnoses",
+          operation: "create",
+        });
+        errorEmitter.emit("permission-error", permissionError);
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Operation Failed",
+          description: error.message || "Could not save your report."
+        });
+      }
+    } finally {
+      setSaving(false);
+    }
   };
 
   const reset = () => {
     setImage(null);
     setResult(null);
+    setReportUrl(null);
   };
 
   return (
@@ -245,7 +257,6 @@ export default function DiagnosisPage() {
                       </Button>
                     </div>
                   </div>
-                  <p className="text-xs text-muted-foreground uppercase tracking-widest">Supports JPEG, PNG, WEBP</p>
                 </div>
               ) : showCamera ? (
                 <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-black ring-1 ring-white/10">
@@ -333,38 +344,38 @@ export default function DiagnosisPage() {
                           </p>
                         </div>
                       </div>
-
-                      <div className="space-y-2">
-                        <h4 className="font-bold text-sm uppercase tracking-wider flex items-center gap-2">
-                          <ShieldCheck className="h-4 w-4 text-primary" /> Recommended Zen Treatments
-                        </h4>
-                        <div className="grid gap-2">
-                          {result.diagnosis.treatmentSuggestions.map((s, i) => (
-                            <div key={i} className="flex gap-3 text-sm p-3 rounded-lg bg-white/5 border border-white/5 hover:border-primary/30 transition-colors">
-                              <span className="text-primary font-bold">0{i+1}.</span>
-                              <span>{s}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
                     </div>
                   )}
 
-                  <div className="pt-4 flex gap-4">
-                    <Button variant="outline" className="flex-1 border-white/10" onClick={reset}>
-                      <RefreshCw className="mr-2 h-4 w-4" /> New Scan
-                    </Button>
-                    <Button 
-                      className="flex-1 bg-primary text-primary-foreground font-bold neon-glow"
-                      onClick={saveReport}
-                      disabled={saving}
-                    >
-                      {saving ? (
-                        <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</>
-                      ) : (
-                        <><FileText className="mr-2 h-4 w-4" /> Save Report</>
-                      )}
-                    </Button>
+                  <div className="pt-4 space-y-4">
+                    <div className="flex gap-4">
+                      <Button variant="outline" className="flex-1 border-white/10" onClick={reset}>
+                        <RefreshCw className="mr-2 h-4 w-4" /> New Scan
+                      </Button>
+                      <Button 
+                        className="flex-1 bg-primary text-primary-foreground font-bold neon-glow"
+                        onClick={saveReport}
+                        disabled={saving}
+                      >
+                        {saving ? (
+                          <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving & Exporting...</>
+                        ) : (
+                          <><FileText className="mr-2 h-4 w-4" /> Save & Generate PDF</>
+                        )}
+                      </Button>
+                    </div>
+
+                    {reportUrl && (
+                      <Button 
+                        asChild 
+                        variant="accent" 
+                        className="w-full font-bold h-12"
+                      >
+                        <a href={reportUrl} target="_blank" rel="noopener noreferrer">
+                          <Download className="mr-2 h-4 w-4" /> Download PDF Diagnosis
+                        </a>
+                      </Button>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -376,7 +387,7 @@ export default function DiagnosisPage() {
               </div>
               <div>
                 <h3 className="text-xl font-bold font-headline">Zen Diagnosis System Idle</h3>
-                <p className="text-muted-foreground max-w-xs mx-auto text-sm">Upload an image to trigger the AgriZen neural processing engine and receive deep plant insights.</p>
+                <p className="text-muted-foreground max-w-xs mx-auto text-sm">Upload an image to trigger neural processing and receive professional PDF reports.</p>
               </div>
             </Card>
           )}

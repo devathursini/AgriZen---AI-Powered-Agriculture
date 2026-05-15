@@ -26,6 +26,10 @@
           "type": "object",
           "description": "AI diagnosis results including disease and treatment."
         },
+        "reportUrl": {
+          "type": "string",
+          "description": "URL to the generated PDF diagnosis report."
+        },
         "timestamp": {
           "type": "string",
           "format": "date-time",
