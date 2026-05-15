@@ -21,9 +21,7 @@ import {
   Loader2,
   AlertCircle,
   ExternalLink,
-  ChevronDown,
-  RefreshCw,
-  Info
+  RefreshCw
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth, useUser } from "@/firebase";
@@ -73,8 +71,8 @@ export function Sidebar() {
         setAuthError("identity-blocked");
         toast({
           variant: "destructive",
-          title: "API Activation Pending",
-          description: "The Identity Toolkit API is either disabled or still propagating. See the sidebar for instructions.",
+          title: "Setup Required",
+          description: "Authentication service is blocked. Follow the steps in the sidebar to fix this.",
         });
         return;
       }
@@ -117,35 +115,28 @@ export function Sidebar() {
         {authError === "identity-blocked" && (
           <Alert variant="destructive" className="bg-destructive/10 border-destructive/20 mb-4 animate-in fade-in slide-in-from-top-4 duration-500">
             <AlertCircle className="h-4 w-4" />
-            <AlertTitle className="text-xs font-bold uppercase tracking-wider">Auth Sync Required</AlertTitle>
+            <AlertTitle className="text-xs font-bold uppercase tracking-wider">Fix Authentication</AlertTitle>
             <AlertDescription className="text-[10px] space-y-3 mt-1">
-              <p>The API was enabled, but hasn't synced with your API Key yet.</p>
+              <p>Requests are still being blocked. Please complete these 3 steps:</p>
               <div className="space-y-3">
-                <div className="p-2 bg-black/20 rounded border border-destructive/10 space-y-1">
-                  <p className="font-bold text-[9px] text-foreground uppercase">Mandatory Next Steps:</p>
-                  <ol className="list-decimal pl-3 space-y-1 text-[9px] text-muted-foreground">
-                    <li>
-                      <a 
-                        href={`https://console.firebase.google.com/project/${projectId}/authentication/providers`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-destructive underline font-bold"
-                      >
-                        1. Enable Google Provider in Firebase Console <ExternalLink className="h-2 w-2 inline" />
-                      </a>
-                    </li>
-                    <li>
-                      <a 
-                        href={`https://console.cloud.google.com/apis/library/identitytoolkit.googleapis.com?project=${projectId}`} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-destructive underline font-bold"
-                      >
-                        2. Confirm "Identity Toolkit" is ENABLED <ExternalLink className="h-2 w-2 inline" />
-                      </a>
-                    </li>
-                    <li>Wait 60 seconds and refresh this page.</li>
-                  </ol>
+                <div className="p-2 bg-black/20 rounded border border-destructive/10 space-y-2">
+                  <a 
+                    href={`https://console.firebase.google.com/project/${projectId}/authentication/providers`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-between text-destructive underline font-bold group"
+                  >
+                    1. Enable Google Auth <ExternalLink className="h-2 w-2 opacity-50 group-hover:opacity-100" />
+                  </a>
+                  <a 
+                    href={`https://console.cloud.google.com/apis/library/identitytoolkit.googleapis.com?project=${projectId}`} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-between text-destructive underline font-bold group"
+                  >
+                    2. Enable Identity API <ExternalLink className="h-2 w-2 opacity-50 group-hover:opacity-100" />
+                  </a>
+                  <p className="font-medium text-muted-foreground">3. Refresh your browser.</p>
                 </div>
                 <Button 
                   size="sm" 
@@ -153,7 +144,7 @@ export function Sidebar() {
                   className="w-full text-[9px] h-7 border-destructive/20 hover:bg-destructive/20"
                   onClick={() => window.location.reload()}
                 >
-                  <RefreshCw className="mr-1 h-3 w-3" /> Refresh App Now
+                  <RefreshCw className="mr-1 h-3 w-3" /> Refresh App
                 </Button>
               </div>
             </AlertDescription>
@@ -235,7 +226,7 @@ export function Sidebar() {
             </Button>
             <div className="px-3">
               <p className="text-[9px] text-muted-foreground text-center leading-relaxed">
-                By signing in, you connect your personal agronomist history.
+                Unlock cloud history by signing in.
               </p>
             </div>
           </div>
