@@ -20,6 +20,7 @@ import {
   Eye,
   ArrowUp,
   ArrowDown,
+  Home,
   Wind
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -104,22 +105,30 @@ export default function DroneControlPage() {
           <CardDescription>Select strategic mission profiles for autonomous swarm deployment</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
             <Button onClick={() => dispatchMission("Crop Spraying")} className="h-20 flex flex-col gap-2 bg-white/5 border-white/10 hover:border-primary/50 hover:bg-primary/5 group">
               <Droplets className="h-6 w-6 text-primary group-hover:scale-110 transition-transform" />
-              <span className="text-xs font-bold uppercase tracking-wider">Crop Spraying</span>
+              <span className="text-[10px] font-bold uppercase tracking-wider">Crop Spraying</span>
             </Button>
             <Button onClick={() => dispatchMission("Field Mapping")} className="h-20 flex flex-col gap-2 bg-white/5 border-white/10 hover:border-primary/50 hover:bg-primary/5 group">
               <MapIcon className="h-6 w-6 text-accent group-hover:scale-110 transition-transform" />
-              <span className="text-xs font-bold uppercase tracking-wider">Field Mapping</span>
+              <span className="text-[10px] font-bold uppercase tracking-wider">Field Mapping</span>
             </Button>
             <Button onClick={() => dispatchMission("Livestock Monitoring")} className="h-20 flex flex-col gap-2 bg-white/5 border-white/10 hover:border-primary/50 hover:bg-primary/5 group">
               <Eye className="h-6 w-6 text-blue-400 group-hover:scale-110 transition-transform" />
-              <span className="text-xs font-bold uppercase tracking-wider">Livestock Monitor</span>
+              <span className="text-[10px] font-bold uppercase tracking-wider">Livestock</span>
             </Button>
             <Button onClick={() => dispatchMission("Takeoff All Units")} className="h-20 flex flex-col gap-2 bg-primary/10 border-primary/20 hover:bg-primary hover:text-primary-foreground group">
               <ArrowUp className="h-6 w-6 group-hover:animate-bounce" />
-              <span className="text-xs font-bold uppercase tracking-wider">Takeoff All</span>
+              <span className="text-[10px] font-bold uppercase tracking-wider">Takeoff All</span>
+            </Button>
+            <Button onClick={() => dispatchMission("Land All Units")} className="h-20 flex flex-col gap-2 bg-destructive/10 border-destructive/20 hover:bg-destructive hover:text-white group">
+              <ArrowDown className="h-6 w-6 group-hover:animate-bounce" />
+              <span className="text-[10px] font-bold uppercase tracking-wider">Land All</span>
+            </Button>
+            <Button onClick={() => dispatchMission("Return All to Nexus")} className="h-20 flex flex-col gap-2 bg-white/5 border-white/10 hover:border-accent/50 hover:bg-accent/10 group">
+              <Home className="h-6 w-6 text-accent group-hover:scale-110 transition-transform" />
+              <span className="text-[10px] font-bold uppercase tracking-wider">Return All</span>
             </Button>
           </div>
         </CardContent>
@@ -159,13 +168,13 @@ export default function DroneControlPage() {
                     </div>
                   </div>
 
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     <Button 
                       size="sm" 
                       variant="outline" 
                       className="border-white/10 hover:border-primary hover:text-primary text-[10px] font-bold h-8"
                       onClick={() => handleCommand(drone.id, "Takeoff")}
-                      disabled={drone.status === "In Flight"}
+                      disabled={drone.status === "In Flight" || drone.status === "Charging"}
                     >
                       <ArrowUp className="mr-1 h-3 w-3" /> TAKEOFF
                     </Button>
@@ -177,6 +186,15 @@ export default function DroneControlPage() {
                       disabled={drone.status === "Docked" || drone.status === "Charging"}
                     >
                       <ArrowDown className="mr-1 h-3 w-3" /> LAND
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="border-white/10 hover:border-accent hover:text-accent text-[10px] font-bold h-8"
+                      onClick={() => handleCommand(drone.id, "Return Home")}
+                      disabled={drone.status === "Docked" || drone.status === "Charging" || drone.status === "Returning"}
+                    >
+                      <Home className="mr-1 h-3 w-3" /> HOME
                     </Button>
                   </div>
                 </div>
