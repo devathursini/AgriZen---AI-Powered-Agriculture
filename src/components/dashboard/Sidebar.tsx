@@ -126,7 +126,7 @@ export function Sidebar() {
                   </a>
                 </Button>
                 <p className="text-[9px] text-muted-foreground italic leading-tight">
-                  Note: If you don't see the project, switch to the correct Google account in the top-right corner of the Cloud Console.
+                  Note: If you don't see the project, use the <strong>Account Switcher</strong> in the top-right corner of the Cloud Console.
                 </p>
               </div>
             </AlertDescription>
