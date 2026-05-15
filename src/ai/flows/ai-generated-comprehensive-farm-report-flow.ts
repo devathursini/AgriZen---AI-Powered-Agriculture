@@ -199,12 +199,41 @@ const aiGeneratedComprehensiveFarmReportFlow = ai.defineFlow(
     outputSchema: ComprehensiveFarmReportOutputSchema,
   },
   async (input) => {
-    // 1. Generate the textual summary using the prompt
-    const { output: promptOutput } = await generateReportSummaryPrompt(input);
-    const reportSummary = promptOutput?.reportText;
+    let retries = 5;
+    let lastError: any;
+    let reportSummary: string | undefined;
+
+    while (retries >= 0) {
+      try {
+        // 1. Generate the textual summary using the prompt
+        const { output: promptOutput } = await generateReportSummaryPrompt(input);
+        reportSummary = promptOutput?.reportText;
+        break; // Success
+      } catch (err: any) {
+        lastError = err;
+        const errMsg = err.message?.toLowerCase() || "";
+        
+        // Detect transient errors including 429 Rate Limits and 503 Overloads
+        const isRateLimit = errMsg.includes('429') || errMsg.includes('quota') || errMsg.includes('rate limit') || errMsg.includes('exhausted');
+        const isOverload = errMsg.includes('503') || errMsg.includes('unavailable') || errMsg.includes('high demand');
+
+        if ((isRateLimit || isOverload) && retries > 0) {
+          const attempt = 5 - retries;
+          retries--;
+          
+          // Exponential backoff
+          const waitTime = isRateLimit ? 10000 * Math.pow(2, attempt) : 2000;
+          
+          console.log(`AgriZen Neural Link (Report Flow): Rate limit or overload detected. Retrying in ${waitTime}ms... (Attempts left: ${retries + 1})`);
+          await new Promise(resolve => setTimeout(resolve, waitTime));
+          continue;
+        }
+        throw err;
+      }
+    }
 
     if (!reportSummary) {
-      throw new Error('Failed to generate report summary text.');
+      throw lastError || new Error('Failed to generate report summary text.');
     }
 
     // 2. Call the PDF generation tool with the summary and relevant metadata
