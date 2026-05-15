@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -61,8 +62,7 @@ export function Sidebar() {
     try {
       await signInWithPopup(auth, provider);
     } catch (error: any) {
-      console.error("Sign in failed", error);
-      
+      // Avoid triggering Next.js error overlay by not using console.error for caught auth errors
       const errorMsg = error.message?.toLowerCase() || "";
       const isIdentityBlocked = errorMsg.includes('identitytoolkit') || 
                                 error.code?.includes('api-blocked') ||

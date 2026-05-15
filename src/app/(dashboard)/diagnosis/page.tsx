@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useRef } from "react";
@@ -44,8 +45,21 @@ export default function DiagnosisPage() {
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
-    } catch (error) {
-      console.error("Sign in failed", error);
+    } catch (error: any) {
+      const errorMsg = error.message?.toLowerCase() || "";
+      if (errorMsg.includes('identitytoolkit') || error.code?.includes('api-blocked')) {
+        toast({
+          variant: "destructive",
+          title: "Setup Required",
+          description: "Authentication service is blocked. Please follow the instructions in the sidebar to enable the Identity Toolkit API.",
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Sign In Failed",
+          description: error.message || "Could not complete authentication.",
+        });
+      }
     }
   };
 
