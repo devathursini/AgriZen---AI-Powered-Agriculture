@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useRef } from "react";
@@ -10,7 +11,8 @@ import {
   Loader2, 
   X,
   RefreshCw,
-  FileText
+  FileText,
+  LogIn
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -18,8 +20,9 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { neuralCropDiagnosisRecommendations, type NeuralCropDiagnosisRecommendationsOutput } from "@/ai/flows/neural-crop-diagnosis-recommendations";
 import { cn } from "@/lib/utils";
-import { useFirestore, useUser } from "@/firebase";
+import { useFirestore, useUser, useAuth } from "@/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
 import { useToast } from "@/hooks/use-toast";
@@ -34,8 +37,18 @@ export default function DiagnosisPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   
   const { user } = useUser();
+  const auth = useAuth();
   const db = useFirestore();
   const { toast } = useToast();
+
+  const handleSignIn = async () => {
+    const provider = new GoogleAuthProvider();
+    try {
+      await signInWithPopup(auth, provider);
+    } catch (error) {
+      console.error("Sign in failed", error);
+    }
+  };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -106,7 +119,21 @@ export default function DiagnosisPage() {
   };
 
   const saveReport = async () => {
-    if (!result || !user || !db) return;
+    if (!result || !db) return;
+    
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in to save your diagnosis results.",
+        action: (
+          <Button variant="outline" size="sm" onClick={handleSignIn}>
+            <LogIn className="mr-2 h-4 w-4" /> Sign In
+          </Button>
+        )
+      });
+      return;
+    }
+
     setSaving(true);
 
     const diagnosisData = {
@@ -292,7 +319,7 @@ export default function DiagnosisPage() {
                     <Button 
                       className="flex-1 bg-primary text-primary-foreground font-bold neon-glow"
                       onClick={saveReport}
-                      disabled={saving || !user}
+                      disabled={saving}
                     >
                       {saving ? (
                         <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</>

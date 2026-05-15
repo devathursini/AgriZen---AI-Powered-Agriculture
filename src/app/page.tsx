@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -21,7 +22,8 @@ import {
   Bot,
   ShoppingCart,
   Loader2,
-  FileText
+  FileText,
+  LogIn
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -31,8 +33,11 @@ import DashboardLayout from "./(dashboard)/layout";
 import { cn } from "@/lib/utils";
 import { aiGeneratedComprehensiveFarmReport } from "@/ai/flows/ai-generated-comprehensive-farm-report-flow";
 import { useToast } from "@/hooks/use-toast";
-import { useFirestore, useUser } from "@/firebase";
+import { useFirestore, useUser, useAuth } from "@/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { errorEmitter } from "@/firebase/error-emitter";
+import { FirestorePermissionError } from "@/firebase/errors";
 
 const data = [
   { name: "Mon", health: 85, yield: 65 },
@@ -70,15 +75,38 @@ const StatCard = ({ icon: Icon, title, value, sub, trend }: any) => (
 export default function Dashboard() {
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
-  const { user } = useUser();
+  const { user, loading: userLoading } = useUser();
+  const auth = useAuth();
   const db = useFirestore();
 
+  const handleSignIn = async () => {
+    const provider = new GoogleAuthProvider();
+    try {
+      await signInWithPopup(auth, provider);
+    } catch (error) {
+      console.error("Sign in failed", error);
+    }
+  };
+
   const handleGenerateReport = async () => {
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in to generate and save reports.",
+        action: (
+          <Button variant="outline" size="sm" onClick={handleSignIn}>
+            <LogIn className="mr-2 h-4 w-4" /> Sign In
+          </Button>
+        )
+      });
+      return;
+    }
+
     setIsGenerating(true);
     try {
       const cropType = "Bio-Genic Tomato";
       const result = await aiGeneratedComprehensiveFarmReport({
-        farmerName: user?.displayName || "Nexus Admin",
+        farmerName: user.displayName || "Nexus Farmer",
         farmLocation: "Sector 7G, Veridian Prime",
         cropType: cropType,
         plantingDate: "2024-01-15",
@@ -95,16 +123,23 @@ export default function Dashboard() {
         reportTimestamp: new Date().toISOString()
       });
 
-      // Save to Firestore
-      if (db && user) {
-        addDoc(collection(db, "reports"), {
-          userId: user.uid,
-          reportUrl: result.reportUrl,
-          cropType: cropType,
-          timestamp: new Date().toISOString(),
-          createdAt: serverTimestamp()
+      const reportData = {
+        userId: user.uid,
+        reportUrl: result.reportUrl,
+        cropType: cropType,
+        timestamp: new Date().toISOString(),
+        createdAt: serverTimestamp()
+      };
+
+      addDoc(collection(db, "reports"), reportData)
+        .catch(async (error) => {
+          const permissionError = new FirestorePermissionError({
+            path: "reports",
+            operation: "create",
+            requestResourceData: reportData,
+          });
+          errorEmitter.emit('permission-error', permissionError);
         });
-      }
 
       toast({
         title: "Report Generated",
@@ -151,7 +186,7 @@ export default function Dashboard() {
             </Badge>
             <Button 
               onClick={handleGenerateReport} 
-              disabled={isGenerating}
+              disabled={isGenerating || userLoading}
               className="bg-primary text-primary-foreground hover:bg-primary/90 font-bold min-w-[160px] neon-glow"
             >
               {isGenerating ? (

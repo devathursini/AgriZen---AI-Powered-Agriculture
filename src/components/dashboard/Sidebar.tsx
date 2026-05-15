@@ -16,9 +16,15 @@ import {
   CloudRain,
   ShieldAlert,
   Dna,
-  FileText
+  FileText,
+  LogIn,
+  Loader2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth, useUser } from "@/firebase";
+import { signInWithPopup, GoogleAuthProvider, signOut } from "firebase/auth";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/" },
@@ -35,6 +41,25 @@ const menuItems = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { user, loading } = useUser();
+  const auth = useAuth();
+
+  const handleSignIn = async () => {
+    const provider = new GoogleAuthProvider();
+    try {
+      await signInWithPopup(auth, provider);
+    } catch (error) {
+      console.error("Sign in failed", error);
+    }
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await signOut(auth);
+    } catch (error) {
+      console.error("Sign out failed", error);
+    }
+  };
 
   return (
     <div className="flex h-screen w-64 flex-col bg-sidebar border-r border-sidebar-border/50">
@@ -76,18 +101,51 @@ export function Sidebar() {
         </nav>
       </div>
 
-      <div className="mt-auto border-t border-sidebar-border/50 p-4 space-y-2">
-        <Link
-          href="/settings"
-          className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-white/5 hover:text-foreground transition-all"
-        >
-          <Settings className="h-5 w-5" />
-          Settings
-        </Link>
-        <button className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all">
-          <LogOut className="h-5 w-5" />
-          Logout
-        </button>
+      <div className="mt-auto border-t border-sidebar-border/50 p-4 space-y-4">
+        {loading ? (
+          <div className="flex items-center justify-center p-2">
+            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+          </div>
+        ) : user ? (
+          <div className="space-y-4">
+            <div className="flex items-center gap-3 px-3">
+              <Avatar className="h-8 w-8 border border-white/10">
+                <AvatarImage src={user.photoURL || undefined} />
+                <AvatarFallback className="bg-primary/20 text-primary text-xs">
+                  {user.displayName?.charAt(0) || "U"}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1 overflow-hidden">
+                <p className="text-sm font-medium text-foreground truncate">{user.displayName}</p>
+                <p className="text-[10px] text-muted-foreground truncate">{user.email}</p>
+              </div>
+            </div>
+            <div className="space-y-1">
+              <Link
+                href="/settings"
+                className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-white/5 hover:text-foreground transition-all"
+              >
+                <Settings className="h-5 w-5" />
+                Settings
+              </Link>
+              <button 
+                onClick={handleSignOut}
+                className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all"
+              >
+                <LogOut className="h-5 w-5" />
+                Logout
+              </button>
+            </div>
+          </div>
+        ) : (
+          <Button 
+            onClick={handleSignIn}
+            variant="outline" 
+            className="w-full border-primary/20 text-primary hover:bg-primary/10 font-bold"
+          >
+            <LogIn className="mr-2 h-4 w-4" /> Sign In
+          </Button>
+        )}
       </div>
     </div>
   );
