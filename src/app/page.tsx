@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useMemo } from "react";
@@ -22,11 +23,21 @@ import {
   Loader2,
   FileText,
   LogIn,
-  ExternalLink
+  ExternalLink,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
+import Image from "next/image";
 import Link from "next/link";
 import DashboardLayout from "./(dashboard)/layout";
 import { aiGeneratedComprehensiveFarmReport } from "@/ai/flows/ai-generated-comprehensive-farm-report-flow";
@@ -36,6 +47,7 @@ import { collection, addDoc, serverTimestamp, query, where, orderBy, limit } fro
 import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
+import { PlaceHolderImages } from "@/lib/placeholder-images";
 
 const chartData = [
   { name: "Mon", health: 85, yield: 65 },
@@ -76,6 +88,10 @@ export default function Dashboard() {
   const { user, loading: userLoading } = useUser();
   const auth = useAuth();
   const db = useFirestore();
+
+  const heroImages = useMemo(() => 
+    PlaceHolderImages.filter(img => ["hero-farm", "drone-shot", "smart-irrigation", "wheat-harvest", "greenhouse-tech"].includes(img.id)),
+  []);
 
   const reportsQuery = useMemo(() => {
     if (!db || !user) return null;
@@ -199,6 +215,43 @@ export default function Dashboard() {
             </Button>
           </div>
         </div>
+
+        {/* Hero Image Carousel */}
+        <section className="relative group">
+          <Carousel className="w-full" opts={{ loop: true }}>
+            <CarouselContent>
+              {heroImages.map((img) => (
+                <CarouselItem key={img.id}>
+                  <div className="relative aspect-[2.5/1] w-full overflow-hidden rounded-2xl border border-white/5 bg-card">
+                    <div className="scanline" />
+                    <Image
+                      src={img.imageUrl}
+                      alt={img.description}
+                      fill
+                      className="object-cover transition-transform duration-1000 group-hover:scale-105"
+                      data-ai-hint={img.imageHint}
+                      priority={img.id === "hero-farm"}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent" />
+                    <div className="absolute bottom-8 left-8 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <Badge className="bg-primary text-primary-foreground font-bold neon-glow">Zen Vision Live</Badge>
+                        <Badge variant="outline" className="bg-black/40 border-white/10 text-white backdrop-blur-md">Node: Sector 7G</Badge>
+                      </div>
+                      <h3 className="text-3xl font-bold font-headline text-white drop-shadow-2xl">{img.description}</h3>
+                    </div>
+                  </div>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <div className="absolute top-1/2 -translate-y-1/2 left-4">
+              <CarouselPrevious className="relative left-0 translate-y-0 opacity-0 group-hover:opacity-100 transition-opacity bg-black/50 border-white/10 text-white hover:bg-primary hover:text-primary-foreground" />
+            </div>
+            <div className="absolute top-1/2 -translate-y-1/2 right-4">
+              <CarouselNext className="relative right-0 translate-y-0 opacity-0 group-hover:opacity-100 transition-opacity bg-black/50 border-white/10 text-white hover:bg-primary hover:text-primary-foreground" />
+            </div>
+          </Carousel>
+        </section>
 
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard icon={Thermometer} title="Avg. Temp" value="24.5°C" sub="Optimal Range" trend="+2.4%" />

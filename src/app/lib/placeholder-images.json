@@ -1,0 +1,47 @@
+
+{
+  "placeholderImages": [
+    {
+      "id": "hero-farm",
+      "description": "Futuristic indoor farm with neon lighting",
+      "imageUrl": "https://picsum.photos/seed/agri-hero/1200/600",
+      "imageHint": "indoor farm"
+    },
+    {
+      "id": "drone-shot",
+      "description": "Aerial drone view of a lush green farm",
+      "imageUrl": "https://picsum.photos/seed/agri-drone/1200/600",
+      "imageHint": "farm aerial"
+    },
+    {
+      "id": "smart-irrigation",
+      "description": "Smart irrigation system in a field",
+      "imageUrl": "https://picsum.photos/seed/agri-irrigation/1200/600",
+      "imageHint": "farm irrigation"
+    },
+    {
+      "id": "wheat-harvest",
+      "description": "Golden wheat field at sunset",
+      "imageUrl": "https://picsum.photos/seed/wheat-harvest/1200/600",
+      "imageHint": "wheat field"
+    },
+    {
+      "id": "greenhouse-tech",
+      "description": "Advanced hydroponics in a greenhouse",
+      "imageUrl": "https://picsum.photos/seed/greenhouse/1200/600",
+      "imageHint": "hydroponic greenhouse"
+    },
+    {
+      "id": "tomato-leaf",
+      "description": "Detailed shot of a tomato leaf",
+      "imageUrl": "https://picsum.photos/seed/tomato-leaf/400/400",
+      "imageHint": "tomato leaf"
+    },
+    {
+      "id": "avatar-expert",
+      "description": "Agriculture expert avatar",
+      "imageUrl": "https://picsum.photos/seed/expert/100/100",
+      "imageHint": "professional man"
+    }
+  ]
+}
