@@ -1,0 +1,85 @@
+
+{
+  "entities": {
+    "Diagnosis": {
+      "title": "Diagnosis",
+      "description": "A record of a crop disease diagnosis performed by the AI.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "The ID of the user who performed the diagnosis."
+        },
+        "imageUri": {
+          "type": "string",
+          "description": "Data URI of the analyzed image."
+        },
+        "cropType": {
+          "type": "string",
+          "description": "The type of crop analyzed."
+        },
+        "identification": {
+          "type": "object",
+          "description": "AI identification results."
+        },
+        "diagnosis": {
+          "type": "object",
+          "description": "AI diagnosis results including disease and treatment."
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the diagnosis was performed."
+        }
+      },
+      "required": [
+        "userId",
+        "imageUri",
+        "diagnosis",
+        "timestamp"
+      ]
+    },
+    "FarmReport": {
+      "title": "Farm Report",
+      "description": "A generated comprehensive farm report.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "The ID of the user who owns the report."
+        },
+        "reportUrl": {
+          "type": "string",
+          "description": "URL to the generated PDF report."
+        },
+        "cropType": {
+          "type": "string"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "userId",
+        "reportUrl",
+        "timestamp"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "google.com"
+    ]
+  },
+  "firestore": {
+    "/diagnoses/{diagnosisId}": {
+      "schema": "Diagnosis",
+      "description": "Collection of crop diagnoses performed by users."
+    },
+    "/reports/{reportId}": {
+      "schema": "FarmReport",
+      "description": "Collection of generated agricultural reports."
+    }
+  }
+}

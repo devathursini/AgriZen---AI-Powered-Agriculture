@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { 
   Camera, 
   Upload, 
@@ -18,14 +19,24 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { neuralCropDiagnosisRecommendations, type NeuralCropDiagnosisRecommendationsOutput } from "@/ai/flows/neural-crop-diagnosis-recommendations";
 import { cn } from "@/lib/utils";
+import { useFirestore, useUser } from "@/firebase";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { errorEmitter } from "@/firebase/error-emitter";
+import { FirestorePermissionError } from "@/firebase/errors";
+import { useToast } from "@/hooks/use-toast";
 
 export default function DiagnosisPage() {
   const [image, setImage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [result, setResult] = useState<NeuralCropDiagnosisRecommendationsOutput | null>(null);
   const [showCamera, setShowCamera] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  
+  const { user } = useUser();
+  const db = useFirestore();
+  const { toast } = useToast();
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -78,9 +89,47 @@ export default function DiagnosisPage() {
       setResult(diagnosis);
     } catch (err) {
       console.error(err);
+      toast({
+        variant: "destructive",
+        title: "Analysis Failed",
+        description: "Please ensure your API key is valid in the .env file."
+      });
     } finally {
       setLoading(false);
     }
+  };
+
+  const saveReport = async () => {
+    if (!result || !user || !db) return;
+    setSaving(true);
+
+    const diagnosisData = {
+      userId: user.uid,
+      imageUri: image,
+      identification: result.identification,
+      diagnosis: result.diagnosis,
+      timestamp: new Date().toISOString(),
+      createdAt: serverTimestamp()
+    };
+
+    addDoc(collection(db, "diagnoses"), diagnosisData)
+      .then(() => {
+        toast({
+          title: "Report Saved",
+          description: "Diagnosis has been stored in your history."
+        });
+      })
+      .catch(async (error) => {
+        const permissionError = new FirestorePermissionError({
+          path: "diagnoses",
+          operation: "create",
+          requestResourceData: diagnosisData,
+        });
+        errorEmitter.emit("permission-error", permissionError);
+      })
+      .finally(() => {
+        setSaving(false);
+      });
   };
 
   const reset = () => {
@@ -101,7 +150,7 @@ export default function DiagnosisPage() {
         <div className="space-y-6">
           <Card className="glass neon-border overflow-hidden relative">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2 font-headline">
                 <Camera className="h-5 w-5 text-primary" /> Capture or Upload
               </CardTitle>
               <CardDescription>Provide a clear photo of the leaf or crop for best results</CardDescription>
@@ -110,7 +159,7 @@ export default function DiagnosisPage() {
               {!image && !showCamera ? (
                 <div className="flex flex-col items-center gap-6 py-12">
                   <div className="flex gap-4">
-                    <Button onClick={startCamera} className="bg-primary text-primary-foreground font-bold h-14 px-8">
+                    <Button onClick={startCamera} className="bg-primary text-primary-foreground font-bold h-14 px-8 neon-glow">
                       <Camera className="mr-2 h-5 w-5" /> Open Camera
                     </Button>
                     <div className="relative">
@@ -154,7 +203,7 @@ export default function DiagnosisPage() {
                     <Button 
                       onClick={runAnalysis} 
                       disabled={loading}
-                      className="w-full bg-primary text-primary-foreground font-bold h-14"
+                      className="w-full bg-primary text-primary-foreground font-bold h-14 neon-glow"
                     >
                       {loading ? (
                         <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Neural Processing...</>
@@ -205,12 +254,12 @@ export default function DiagnosisPage() {
                 </CardHeader>
                 <CardContent className="p-6 space-y-6">
                   <div className="grid gap-4 sm:grid-cols-2">
-                    <div className="p-4 rounded-xl bg-white/5 space-y-1">
+                    <div className="p-4 rounded-xl bg-white/5 space-y-1 border border-white/5">
                       <p className="text-xs text-muted-foreground uppercase tracking-wider">Identified Plant</p>
                       <p className="font-bold text-lg">{result.identification.commonName}</p>
                       <p className="text-xs italic text-muted-foreground">{result.identification.latinName}</p>
                     </div>
-                    <div className="p-4 rounded-xl bg-white/5 space-y-1">
+                    <div className="p-4 rounded-xl bg-white/5 space-y-1 border border-white/5">
                       <p className="text-xs text-muted-foreground uppercase tracking-wider">Confidence Score</p>
                       <p className="font-bold text-lg text-primary">{result.diagnosis.confidenceScore}%</p>
                       <Progress value={result.diagnosis.confidenceScore} className="h-1 bg-white/10" />
@@ -235,7 +284,7 @@ export default function DiagnosisPage() {
                         </h4>
                         <div className="grid gap-2">
                           {result.diagnosis.treatmentSuggestions.map((s, i) => (
-                            <div key={i} className="flex gap-3 text-sm p-3 rounded-lg bg-white/5 border border-white/5">
+                            <div key={i} className="flex gap-3 text-sm p-3 rounded-lg bg-white/5 border border-white/5 hover:border-primary/30 transition-colors">
                               <span className="text-primary font-bold">0{i+1}.</span>
                               <span>{s}</span>
                             </div>
@@ -249,8 +298,16 @@ export default function DiagnosisPage() {
                     <Button variant="outline" className="flex-1 border-white/10" onClick={reset}>
                       <RefreshCw className="mr-2 h-4 w-4" /> New Scan
                     </Button>
-                    <Button className="flex-1 bg-primary text-primary-foreground font-bold">
-                      <FileText className="mr-2 h-4 w-4" /> Save Report
+                    <Button 
+                      className="flex-1 bg-primary text-primary-foreground font-bold neon-glow"
+                      onClick={saveReport}
+                      disabled={saving || !user}
+                    >
+                      {saving ? (
+                        <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</>
+                      ) : (
+                        <><FileText className="mr-2 h-4 w-4" /> Save Report</>
+                      )}
                     </Button>
                   </div>
                 </CardContent>
@@ -258,14 +315,16 @@ export default function DiagnosisPage() {
 
               <Card className="glass border-accent/20">
                 <CardHeader>
-                  <CardTitle className="text-sm font-bold uppercase text-accent tracking-widest">Expert Advice</CardTitle>
+                  <CardTitle className="text-sm font-bold uppercase text-accent tracking-widest font-headline">Expert Advice</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <p className="text-sm italic leading-relaxed text-muted-foreground">
                     "Based on current satellite weather forecasts, humidity in your region will rise by 15% tomorrow. This might accelerate the spread of the detected condition. Consider applying organic fungicides immediately."
                   </p>
                   <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-full bg-accent/20 border border-accent/30" />
+                    <div className="h-10 w-10 rounded-full bg-accent/20 border border-accent/30 flex items-center justify-center">
+                       <Dna className="h-5 w-5 text-accent" />
+                    </div>
                     <div>
                       <p className="text-xs font-bold">Dr. Elena Veridian</p>
                       <p className="text-[10px] text-muted-foreground">Lead Plant Pathologist</p>
@@ -276,12 +335,12 @@ export default function DiagnosisPage() {
             </>
           ) : (
             <Card className="glass border-white/5 flex flex-col items-center justify-center p-12 text-center space-y-4">
-              <div className="h-20 w-20 rounded-full bg-white/5 flex items-center justify-center">
+              <div className="h-20 w-20 rounded-full bg-white/5 flex items-center justify-center border border-white/5">
                 <Dna className="h-10 w-10 text-muted-foreground opacity-20" />
               </div>
               <div>
                 <h3 className="text-xl font-bold font-headline">Diagnosis System Idle</h3>
-                <p className="text-muted-foreground max-w-xs mx-auto">Upload an image to trigger the neural processing engine and receive deep plant insights.</p>
+                <p className="text-muted-foreground max-w-xs mx-auto text-sm">Upload an image to trigger the neural processing engine and receive deep plant insights.</p>
               </div>
             </Card>
           )}
