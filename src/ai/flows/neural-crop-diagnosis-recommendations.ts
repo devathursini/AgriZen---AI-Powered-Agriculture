@@ -101,7 +101,7 @@ const neuralCropDiagnosisRecommendationsFlow = ai.defineFlow(
     outputSchema: NeuralCropDiagnosisRecommendationsOutputSchema,
   },
   async input => {
-    let retries = 2;
+    let retries = 3;
     let lastError: any;
 
     while (retries >= 0) {
@@ -113,10 +113,25 @@ const neuralCropDiagnosisRecommendationsFlow = ai.defineFlow(
         return output;
       } catch (err: any) {
         lastError = err;
-        const isTransient = err.message?.includes('503') || err.message?.includes('UNAVAILABLE') || err.message?.includes('high demand');
+        const errMsg = err.message?.toLowerCase() || "";
+        
+        // Detect transient errors including 429 Rate Limits and 503 Overloads
+        const isTransient = 
+          errMsg.includes('503') || 
+          errMsg.includes('unavailable') || 
+          errMsg.includes('429') || 
+          errMsg.includes('quota') || 
+          errMsg.includes('rate limit') || 
+          errMsg.includes('exhausted') || 
+          errMsg.includes('high demand');
+
         if (isTransient && retries > 0) {
           retries--;
-          await new Promise(resolve => setTimeout(resolve, 1500));
+          // Calculate backoff: rate limits (429) need longer pauses than overloads (503)
+          const isRateLimit = errMsg.includes('429') || errMsg.includes('quota') || errMsg.includes('rate limit');
+          const waitTime = isRateLimit ? 5000 * (3 - retries) : 2000;
+          
+          await new Promise(resolve => setTimeout(resolve, waitTime));
           continue;
         }
         throw err;
