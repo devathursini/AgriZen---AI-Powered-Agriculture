@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -119,7 +118,7 @@ export function Sidebar() {
             <AlertCircle className="h-4 w-4" />
             <AlertTitle className="text-xs font-bold uppercase tracking-wider">Fix Authentication</AlertTitle>
             <AlertDescription className="text-[10px] space-y-3 mt-1">
-              <p>Requests are still being blocked. Please complete these 3 steps:</p>
+              <p>The "Identity Toolkit" error means you need to enable 3 things manually:</p>
               <div className="space-y-3">
                 <div className="p-2 bg-black/20 rounded border border-destructive/10 space-y-2">
                   <a 
@@ -128,7 +127,7 @@ export function Sidebar() {
                     rel="noopener noreferrer"
                     className="flex items-center justify-between text-destructive underline font-bold group"
                   >
-                    1. Enable Google Auth <ExternalLink className="h-2 w-2 opacity-50 group-hover:opacity-100" />
+                    1. Enable Google Provider <ExternalLink className="h-2 w-2 opacity-50 group-hover:opacity-100" />
                   </a>
                   <a 
                     href={`https://console.cloud.google.com/apis/library/identitytoolkit.googleapis.com?project=${projectId}`} 
@@ -136,9 +135,9 @@ export function Sidebar() {
                     rel="noopener noreferrer"
                     className="flex items-center justify-between text-destructive underline font-bold group"
                   >
-                    2. Enable Identity API <ExternalLink className="h-2 w-2 opacity-50 group-hover:opacity-100" />
+                    2. Enable Identity Toolkit API <ExternalLink className="h-2 w-2 opacity-50 group-hover:opacity-100" />
                   </a>
-                  <p className="font-medium text-muted-foreground">3. Refresh your browser.</p>
+                  <p className="font-medium text-muted-foreground">3. Ensure API Key restrictions are "None" in Cloud Console.</p>
                 </div>
                 <Button 
                   size="sm" 
@@ -146,7 +145,7 @@ export function Sidebar() {
                   className="w-full text-[9px] h-7 border-destructive/20 hover:bg-destructive/20"
                   onClick={() => window.location.reload()}
                 >
-                  <RefreshCw className="mr-1 h-3 w-3" /> Refresh App
+                  <RefreshCw className="mr-1 h-3 w-3" /> Refresh Browser
                 </Button>
               </div>
             </AlertDescription>
@@ -201,13 +200,6 @@ export function Sidebar() {
               </div>
             </div>
             <div className="space-y-1">
-              <Link
-                href="/settings"
-                className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-white/5 hover:text-foreground transition-all"
-              >
-                <Settings className="h-5 w-5" />
-                Settings
-              </Link>
               <button 
                 onClick={handleSignOut}
                 className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all"

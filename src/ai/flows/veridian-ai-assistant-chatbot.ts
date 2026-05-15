@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview This file implements the Genkit flow for the Veridian AI Assistant Chatbot.
@@ -45,7 +44,7 @@ const veridianAIAssistantChatbotFlow = ai.defineFlow(
       {
         role: 'system',
         content: [{
-          text: `You are an intelligent agriculture chatbot named Veridian Assistant. Your goal is to provide comprehensive and helpful advice to farmers. You can respond in English or Tamil. Current user query: ${input.query}`
+          text: `You are an intelligent agriculture chatbot named Veridian Assistant. Your goal is to provide comprehensive and helpful advice to farmers. You can respond in English or Tamil. Your current objective is to assist with the user's specific query: ${input.query}`
         }]
       },
     ];
@@ -60,7 +59,7 @@ const veridianAIAssistantChatbotFlow = ai.defineFlow(
     });
 
     try {
-      const result = await ai.generate({
+      const response = await ai.generate({
         messages: messages,
         config: {
           maxOutputTokens: 1024,
@@ -68,17 +67,17 @@ const veridianAIAssistantChatbotFlow = ai.defineFlow(
         },
       });
 
-      if (!result || !result.text) {
+      if (!response || !response.text) {
         throw new Error('No response from AI model.');
       }
 
-      return { response: result.text };
+      return { response: response.text };
     } catch (error: any) {
       console.error('Genkit Generate Error:', error);
       
-      if (error.message?.includes('API key not valid')) {
+      if (error.message?.includes('API key not valid') || error.message?.includes('400')) {
         return { 
-          response: "Veridian Assistant is currently configuring its neural link (Invalid Gemini API Key). Please ensure the API key in .env is correct for Google AI Studio." 
+          response: "Veridian Assistant is currently configuring its neural link (Invalid or restricted API Key). Please ensure the API key in .env is correct for Google AI Studio." 
         };
       }
       
