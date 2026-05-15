@@ -16,23 +16,45 @@ import {
   ArrowUpRight,
   Radio,
   Map as MapIcon,
-  Droplets
+  Droplets,
+  Eye,
+  ArrowUp,
+  ArrowDown,
+  Wind
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
-const droneFleet = [
+const initialDroneFleet = [
   { id: "NX-01", model: "Aero-Spray v4", battery: 88, status: "In Flight", task: "Crop Spraying - Sector A", health: 98, temp: "32°C" },
   { id: "NX-02", model: "Sentinel Eye", battery: 42, status: "Returning", task: "Surveillance - North Boundary", health: 95, temp: "38°C" },
-  { id: "NX-03", model: "Hydro-Mist Drone", battery: 100, status: "Docked", task: "Smart Irrigation - Ready", health: 100, temp: "24°C" },
+  { id: "NX-03", model: "Hydro-Mist Drone", battery: 100, status: "Docked", task: "Ready", health: 100, temp: "24°C" },
   { id: "NX-04", model: "Bio-Mapper", battery: 15, status: "Charging", task: "Recharging", health: 92, temp: "45°C" },
 ];
 
 export default function DroneControlPage() {
+  const [fleet, setFleet] = useState(initialDroneFleet);
+  const { toast } = useToast();
+
+  const handleCommand = (droneId: string, command: string) => {
+    toast({
+      title: "Command Transmitted",
+      description: `Neural link established with ${droneId}. Executing ${command}...`,
+    });
+  };
+
+  const dispatchMission = (mission: string) => {
+    toast({
+      title: "Mission Dispatched",
+      description: `Swarm intelligence coordinating for ${mission}. Units deploying immediately.`,
+      variant: "default",
+    });
+  };
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -40,7 +62,7 @@ export default function DroneControlPage() {
           <h1 className="font-headline text-4xl font-bold text-foreground">
             Drone <span className="text-primary">Fleet Control</span>
           </h1>
-          <p className="text-muted-foreground">Autonomous aerial operations and fleet management</p>
+          <p className="text-muted-foreground">Autonomous aerial operations and mission dispatching</p>
         </div>
         <div className="flex items-center gap-3">
            <Button variant="outline" className="border-white/10 hover:bg-white/5">
@@ -73,40 +95,93 @@ export default function DroneControlPage() {
         ))}
       </div>
 
+      {/* Mission Dispatcher */}
+      <Card className="glass border-primary/20">
+        <CardHeader>
+          <CardTitle className="font-headline text-xl flex items-center gap-2">
+            <Zap className="h-5 w-5 text-primary" /> Neural Mission Dispatcher
+          </CardTitle>
+          <CardDescription>Select strategic mission profiles for autonomous swarm deployment</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <Button onClick={() => dispatchMission("Crop Spraying")} className="h-20 flex flex-col gap-2 bg-white/5 border-white/10 hover:border-primary/50 hover:bg-primary/5 group">
+              <Droplets className="h-6 w-6 text-primary group-hover:scale-110 transition-transform" />
+              <span className="text-xs font-bold uppercase tracking-wider">Crop Spraying</span>
+            </Button>
+            <Button onClick={() => dispatchMission("Field Mapping")} className="h-20 flex flex-col gap-2 bg-white/5 border-white/10 hover:border-primary/50 hover:bg-primary/5 group">
+              <MapIcon className="h-6 w-6 text-accent group-hover:scale-110 transition-transform" />
+              <span className="text-xs font-bold uppercase tracking-wider">Field Mapping</span>
+            </Button>
+            <Button onClick={() => dispatchMission("Livestock Monitoring")} className="h-20 flex flex-col gap-2 bg-white/5 border-white/10 hover:border-primary/50 hover:bg-primary/5 group">
+              <Eye className="h-6 w-6 text-blue-400 group-hover:scale-110 transition-transform" />
+              <span className="text-xs font-bold uppercase tracking-wider">Livestock Monitor</span>
+            </Button>
+            <Button onClick={() => dispatchMission("Takeoff All Units")} className="h-20 flex flex-col gap-2 bg-primary/10 border-primary/20 hover:bg-primary hover:text-primary-foreground group">
+              <ArrowUp className="h-6 w-6 group-hover:animate-bounce" />
+              <span className="text-xs font-bold uppercase tracking-wider">Takeoff All</span>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Fleet Monitor */}
         <Card className="glass lg:col-span-2">
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
-              <CardTitle className="font-headline">Unit Vitals</CardTitle>
-              <CardDescription>Real-time telemetry from active field units</CardDescription>
+              <CardTitle className="font-headline">Unit Vitals & Controls</CardTitle>
+              <CardDescription>Real-time telemetry and manual override commands</CardDescription>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            {droneFleet.map((drone) => (
-              <div key={drone.id} className="group flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl bg-white/5 border border-white/5 hover:border-primary/30 transition-all gap-4">
-                <div className="flex items-center gap-4">
-                  <div className={cn(
-                    "h-12 w-12 rounded-xl flex items-center justify-center border",
-                    drone.status === "In Flight" ? "bg-primary/10 border-primary/20 text-primary animate-pulse" : "bg-white/5 border-white/10 text-muted-foreground"
-                  )}>
-                    <Plane className="h-6 w-6" />
+            {fleet.map((drone) => (
+              <div key={drone.id} className="group flex flex-col p-4 rounded-xl bg-white/5 border border-white/5 hover:border-primary/30 transition-all gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className={cn(
+                      "h-12 w-12 rounded-xl flex items-center justify-center border",
+                      drone.status === "In Flight" ? "bg-primary/10 border-primary/20 text-primary animate-pulse" : "bg-white/5 border-white/10 text-muted-foreground"
+                    )}>
+                      <Plane className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-sm flex items-center gap-2">
+                        {drone.id} 
+                        <Badge variant="outline" className={cn(
+                          "text-[9px] px-1.5 py-0",
+                          drone.status === "In Flight" ? "bg-primary/20 text-primary border-primary/20" : "bg-white/10 text-muted-foreground"
+                        )}>
+                          {drone.status}
+                        </Badge>
+                      </h4>
+                      <p className="text-xs text-muted-foreground">{drone.model}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="font-bold text-sm flex items-center gap-2">
-                      {drone.id} 
-                      <Badge variant="outline" className={cn(
-                        "text-[9px] px-1.5 py-0",
-                        drone.status === "In Flight" ? "bg-primary/20 text-primary border-primary/20" : "bg-white/10 text-muted-foreground"
-                      )}>
-                        {drone.status}
-                      </Badge>
-                    </h4>
-                    <p className="text-xs text-muted-foreground">{drone.model}</p>
+
+                  <div className="flex gap-2">
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="border-white/10 hover:border-primary hover:text-primary text-[10px] font-bold h-8"
+                      onClick={() => handleCommand(drone.id, "Takeoff")}
+                      disabled={drone.status === "In Flight"}
+                    >
+                      <ArrowUp className="mr-1 h-3 w-3" /> TAKEOFF
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="border-white/10 hover:border-destructive hover:text-destructive text-[10px] font-bold h-8"
+                      onClick={() => handleCommand(drone.id, "Emergency Landing")}
+                      disabled={drone.status === "Docked" || drone.status === "Charging"}
+                    >
+                      <ArrowDown className="mr-1 h-3 w-3" /> LAND
+                    </Button>
                   </div>
                 </div>
 
-                <div className="flex flex-1 grid grid-cols-2 sm:grid-cols-3 gap-6">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
                   <div className="space-y-1">
                     <div className="flex justify-between text-[10px] uppercase font-bold text-muted-foreground">
                       <span>Battery</span>
@@ -118,21 +193,21 @@ export default function DroneControlPage() {
                     <p className="text-[10px] uppercase font-bold text-muted-foreground">Current Task</p>
                     <p className="text-xs font-medium truncate">{drone.task}</p>
                   </div>
-                  <div className="hidden sm:block space-y-1">
+                  <div className="space-y-1">
                     <p className="text-[10px] uppercase font-bold text-muted-foreground">Thermal Index</p>
                     <p className="text-xs font-medium">{drone.temp}</p>
                   </div>
+                  <div className="space-y-1">
+                    <p className="text-[10px] uppercase font-bold text-muted-foreground">Health</p>
+                    <p className="text-xs font-medium text-primary">{drone.health}%</p>
+                  </div>
                 </div>
-
-                <Button variant="ghost" size="icon" className="shrink-0 hover:text-primary">
-                  <ArrowUpRight className="h-4 w-4" />
-                </Button>
               </div>
             ))}
           </CardContent>
         </Card>
 
-        {/* Live Map Placeholder */}
+        {/* Live Map Overlay */}
         <Card className="glass relative overflow-hidden flex flex-col">
           <CardHeader>
             <CardTitle className="font-headline">Nexus Grid Overlay</CardTitle>
@@ -172,20 +247,20 @@ export default function DroneControlPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             {[
-              { time: "14:00", unit: "NX-03", mission: "Smart Irrigation Hydration", sector: "Sector Beta", priority: "Critical", icon: Droplets },
-              { time: "16:30", unit: "NX-01", mission: "Post-Storm Surveillance", sector: "Global Perimeter", priority: "Normal", icon: Activity },
-              { time: "Tomorrow, 06:00", unit: "Fleet", mission: "Pre-Harvest Mapping", sector: "Sector Delta", priority: "Strategic", icon: Radio },
+              { time: "14:00", unit: "NX-03", mission: "Hydro-Neural Spraying", sector: "Sector Beta", priority: "Critical", icon: Droplets },
+              { time: "15:30", unit: "NX-01", mission: "Livestock Bio-Thermal Scan", sector: "Pasture North", priority: "High", icon: Eye },
+              { time: "16:45", unit: "NX-04", mission: "Topographical Field Mapping", sector: "Global Perimeter", priority: "Normal", icon: MapIcon },
             ].map((mission, i) => (
               <div key={i} className="flex gap-4 p-4 rounded-xl bg-white/5 border border-white/5">
                 <div className="h-12 w-12 rounded-xl bg-white/5 flex flex-col items-center justify-center border border-white/10 shrink-0">
-                  <mission.icon className={cn("h-5 w-5", mission.mission.includes("Irrigation") ? "text-blue-400" : "text-primary")} />
+                  <mission.icon className={cn("h-5 w-5", mission.mission.includes("Spraying") ? "text-primary" : (mission.mission.includes("Mapping") ? "text-accent" : "text-blue-400"))} />
                 </div>
                 <div className="flex-1 space-y-1">
                   <div className="flex justify-between">
                     <p className="text-sm font-bold">{mission.mission}</p>
                     <Badge variant="outline" className={cn(
                       "text-[9px] uppercase",
-                      mission.priority === "Critical" ? "border-blue-400/20 text-blue-400" : "border-primary/20 text-primary"
+                      mission.priority === "Critical" ? "border-destructive/20 text-destructive" : (mission.priority === "High" ? "border-accent/20 text-accent" : "border-primary/20 text-primary")
                     )}>{mission.priority}</Badge>
                   </div>
                   <div className="flex items-center gap-4 text-xs text-muted-foreground">
