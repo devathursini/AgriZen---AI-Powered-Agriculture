@@ -15,7 +15,8 @@ import {
   Activity,
   ArrowUpRight,
   Radio,
-  Map as MapIcon
+  Map as MapIcon,
+  Droplets
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -27,13 +28,11 @@ import { cn } from "@/lib/utils";
 const droneFleet = [
   { id: "NX-01", model: "Aero-Spray v4", battery: 88, status: "In Flight", task: "Crop Spraying - Sector A", health: 98, temp: "32°C" },
   { id: "NX-02", model: "Sentinel Eye", battery: 42, status: "Returning", task: "Surveillance - North Boundary", health: 95, temp: "38°C" },
-  { id: "NX-03", model: "Aero-Spray v4", battery: 100, status: "Docked", task: "Standby", health: 100, temp: "24°C" },
+  { id: "NX-03", model: "Hydro-Mist Drone", battery: 100, status: "Docked", task: "Smart Irrigation - Ready", health: 100, temp: "24°C" },
   { id: "NX-04", model: "Bio-Mapper", battery: 15, status: "Charging", task: "Recharging", health: 92, temp: "45°C" },
 ];
 
 export default function DroneControlPage() {
-  const [activeTab, setActiveTab] = useState("fleet");
-
   return (
     <div className="space-y-8">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -82,12 +81,6 @@ export default function DroneControlPage() {
               <CardTitle className="font-headline">Unit Vitals</CardTitle>
               <CardDescription>Real-time telemetry from active field units</CardDescription>
             </div>
-            <Tabs defaultValue="fleet" className="w-auto">
-              <TabsList className="bg-white/5 border border-white/10">
-                <TabsTrigger value="fleet">All Units</TabsTrigger>
-                <TabsTrigger value="active">Active</TabsTrigger>
-              </TabsList>
-            </Tabs>
           </CardHeader>
           <CardContent className="space-y-4">
             {droneFleet.map((drone) => (
@@ -179,18 +172,21 @@ export default function DroneControlPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             {[
-              { time: "14:00", unit: "NX-03", mission: "Bio-Nutrient Mist", sector: "Sector Beta", priority: "High" },
-              { time: "16:30", unit: "NX-01", mission: "Post-Storm Surveillance", sector: "Global Perimeter", priority: "Normal" },
-              { time: "Tomorrow, 06:00", unit: "Fleet", mission: "Pre-Harvest Mapping", sector: "Sector Delta", priority: "Strategic" },
+              { time: "14:00", unit: "NX-03", mission: "Smart Irrigation Hydration", sector: "Sector Beta", priority: "Critical", icon: Droplets },
+              { time: "16:30", unit: "NX-01", mission: "Post-Storm Surveillance", sector: "Global Perimeter", priority: "Normal", icon: Activity },
+              { time: "Tomorrow, 06:00", unit: "Fleet", mission: "Pre-Harvest Mapping", sector: "Sector Delta", priority: "Strategic", icon: Radio },
             ].map((mission, i) => (
               <div key={i} className="flex gap-4 p-4 rounded-xl bg-white/5 border border-white/5">
                 <div className="h-12 w-12 rounded-xl bg-white/5 flex flex-col items-center justify-center border border-white/10 shrink-0">
-                  <Activity className="h-5 w-5 text-primary" />
+                  <mission.icon className={cn("h-5 w-5", mission.mission.includes("Irrigation") ? "text-blue-400" : "text-primary")} />
                 </div>
                 <div className="flex-1 space-y-1">
                   <div className="flex justify-between">
                     <p className="text-sm font-bold">{mission.mission}</p>
-                    <Badge variant="outline" className="text-[9px] border-primary/20 text-primary uppercase">{mission.priority}</Badge>
+                    <Badge variant="outline" className={cn(
+                      "text-[9px] uppercase",
+                      mission.priority === "Critical" ? "border-blue-400/20 text-blue-400" : "border-primary/20 text-primary"
+                    )}>{mission.priority}</Badge>
                   </div>
                   <div className="flex items-center gap-4 text-xs text-muted-foreground">
                     <span className="flex items-center gap-1 font-mono">{mission.time}</span>
