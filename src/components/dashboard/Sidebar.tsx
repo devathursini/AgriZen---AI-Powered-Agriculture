@@ -19,7 +19,8 @@ import {
   LogIn,
   Loader2,
   AlertCircle,
-  ExternalLink
+  ExternalLink,
+  ChevronDown
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth, useUser } from "@/firebase";
@@ -115,19 +116,24 @@ export function Sidebar() {
             <AlertTitle className="text-xs font-bold uppercase tracking-wider">API Blocked</AlertTitle>
             <AlertDescription className="text-[10px] space-y-3 mt-1">
               <p>Identity Toolkit API is disabled for project <strong>{projectId}</strong>.</p>
-              <div className="space-y-2">
-                <Button variant="link" className="p-0 h-auto text-[10px] text-destructive underline font-bold text-left" asChild>
+              <div className="space-y-3">
+                <Button variant="link" className="p-0 h-auto text-[10px] text-destructive underline font-bold text-left block" asChild>
                   <a 
                     href={`https://console.cloud.google.com/apis/library/identitytoolkit.googleapis.com?project=${projectId}`} 
                     target="_blank" 
                     rel="noopener noreferrer"
                   >
-                    1. Enable API Now <ExternalLink className="ml-1 h-2 w-2 inline" />
+                    1. Click here to Enable API <ExternalLink className="ml-1 h-2 w-2 inline" />
                   </a>
                 </Button>
-                <p className="text-[9px] text-muted-foreground italic leading-tight">
-                  Note: If you don't see the project, use the <strong>Account Switcher</strong> in the top-right corner of the Cloud Console.
-                </p>
+                <div className="p-2 bg-black/20 rounded border border-destructive/10 space-y-1">
+                  <p className="font-bold text-[9px] text-foreground uppercase">Can't see project?</p>
+                  <ol className="list-decimal pl-3 space-y-1 text-[9px] text-muted-foreground">
+                    <li>Check the <strong>account switcher</strong> (top-right icon).</li>
+                    <li>Use the <strong>project dropdown</strong> next to the Cloud logo.</li>
+                    <li>Select the <strong>"All"</strong> tab to find {projectId}.</li>
+                  </ol>
+                </div>
               </div>
             </AlertDescription>
           </Alert>

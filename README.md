@@ -15,8 +15,12 @@ To enable user login and saving reports, you must complete these **three** steps
 ### A. Enable Identity Toolkit API (The "Blocked" Error Fix)
 This is the most common cause of the "Requests to this API are blocked" error.
 1. Click this link: [Enable Identity Toolkit API](https://console.cloud.google.com/apis/library/identitytoolkit.googleapis.com?project=studio-4318523135-2e5de).
-2. **Crucial:** In the top-right corner of the page, ensure you are logged into the **correct Google account** that owns the Firebase project.
-3. Click the **ENABLE** button.
+2. **Crucial:** If you don't see the project immediately:
+   - Click the **Project Dropdown** at the top-left (next to the Google Cloud logo).
+   - Select the **"All"** tab in the popup.
+   - Search for `studio-4318523135-2e5de`.
+3. Ensure you are logged into the **correct Google account** (check the top-right profile icon).
+4. Click the **ENABLE** button.
 
 ### B. Enable Google Sign-In Provider
 1. Go to the [Firebase Console](https://console.firebase.google.com/project/studio-4318523135-2e5de/authentication/providers).
@@ -28,10 +32,9 @@ This is the most common cause of the "Requests to this API are blocked" error.
 2. Scroll down to **Your apps** and copy the configuration object.
 3. Update your `.env` file with your specific values.
 
-## 3. Troubleshooting: "I cannot see my project"
-If you click the link and the project is not found:
-- **Account Switcher**: Click your profile picture in the top-right of the Google Cloud Console. Select the account you used to create the Firebase project.
-- **Project Selection**: Use the project dropdown next to the "Google Cloud" logo at the top left to manually search for `studio-4318523135-2e5de`.
+## 3. Troubleshooting
+- **Cannot find project?**: In Google Cloud Console, click the project name at the top left, select the "All" tab, and search for the project ID.
+- **Wrong account?**: Use the profile icon in the top right of the Google Cloud Console to switch to the account used to create the Firebase project.
 
 ## 4. Enable Firestore Database
 1. Go to [Firestore Database](https://console.firebase.google.com/project/studio-4318523135-2e5de/firestore).
