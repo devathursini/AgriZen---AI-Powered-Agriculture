@@ -24,7 +24,8 @@ import {
   LogIn,
   ExternalLink,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Download
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -183,7 +184,9 @@ export default function Dashboard() {
         description: "Your AgriZen AI farm report is ready and has been saved.",
         action: (
           <Button variant="outline" size="sm" asChild>
-            <a href={result.reportUrl} target="_blank" rel="noopener noreferrer">View PDF</a>
+            <a href={result.reportUrl} download={`agrizen-report-${Date.now()}.pdf`} target="_blank" rel="noopener noreferrer">
+              <Download className="mr-2 h-4 w-4" /> Download PDF
+            </a>
           </Button>
         )
       });
@@ -323,8 +326,8 @@ export default function Dashboard() {
                     </div>
                   </div>
                   <Button variant="ghost" size="icon" asChild className="text-primary hover:bg-primary/10">
-                    <a href={report.reportUrl} target="_blank" rel="noopener noreferrer">
-                      <ExternalLink className="h-4 w-4" />
+                    <a href={report.reportUrl} download={`agrizen-report-${report.id}.pdf`} target="_blank" rel="noopener noreferrer">
+                      <Download className="h-4 w-4" />
                     </a>
                   </Button>
                 </div>

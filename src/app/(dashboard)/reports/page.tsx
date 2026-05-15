@@ -110,8 +110,8 @@ export default function ReportsPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     <Button variant="outline" size="sm" asChild className="border-white/10 hover:bg-white/5">
-                      <a href={report.reportUrl} target="_blank" rel="noopener noreferrer">
-                        <ExternalLink className="mr-2 h-4 w-4" /> View
+                      <a href={report.reportUrl} download={`agrizen-report-${report.id}.pdf`} target="_blank" rel="noopener noreferrer">
+                        <Download className="mr-2 h-4 w-4" /> Download
                       </a>
                     </Button>
                     <Button variant="outline" size="icon" className="border-white/10 hover:text-destructive hover:bg-destructive/10" onClick={() => handleDelete(report.id)}>

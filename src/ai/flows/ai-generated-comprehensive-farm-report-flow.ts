@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview A Genkit flow for generating a comprehensive farm report in PDF format for AgriZen AI.
@@ -70,13 +69,18 @@ const generatePdfReportTool = ai.defineTool(
   async (input) => {
     console.log(`Generating Real Comprehensive PDF report for: ${input.reportTitle}`);
     
-    const doc = new jsPDF();
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4'
+    });
+    
     const margin = 20;
     const pageWidth = doc.internal.pageSize.getWidth();
     let y = 20;
 
     // Header
-    doc.setTextColor(0, 255, 102); // Primary Green
+    doc.setTextColor(0, 200, 80); // Primary Green
     doc.setFontSize(22);
     doc.text('AGRIZEN AI', pageWidth / 2, y, { align: 'center' });
     y += 10;
@@ -92,7 +96,7 @@ const generatePdfReportTool = ai.defineTool(
     doc.text(`Generated: ${dateStr}`, pageWidth - margin, y, { align: 'right' });
     y += 5;
     
-    doc.setDrawColor(0, 255, 102);
+    doc.setDrawColor(0, 200, 80);
     doc.setLineWidth(0.5);
     doc.line(margin, y, pageWidth - margin, y);
     y += 15;
@@ -118,7 +122,7 @@ const generatePdfReportTool = ai.defineTool(
       y = 20;
     }
     
-    doc.setDrawColor(238, 238, 238);
+    doc.setDrawColor(200, 200, 200);
     doc.line(margin, y, pageWidth - margin, y);
     y += 10;
     
@@ -128,6 +132,7 @@ const generatePdfReportTool = ai.defineTool(
     const splitFooter = doc.splitTextToSize(footerText, pageWidth - (margin * 2));
     doc.text(splitFooter, pageWidth / 2, y, { align: 'center' });
 
+    // Use datauristring for direct browser viewing/download
     return doc.output('datauristring');
   }
 );

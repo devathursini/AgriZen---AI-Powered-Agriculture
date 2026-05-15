@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useMemo, useState, useEffect } from "react";
@@ -140,7 +139,7 @@ export default function DiagnosisHistoryPage() {
                       <div className="flex gap-2">
                         {d.reportUrl && (
                           <Button variant="accent" size="sm" asChild>
-                            <a href={d.reportUrl} target="_blank" rel="noopener noreferrer">
+                            <a href={d.reportUrl} download={`agrizen-diagnosis-${d.id}.pdf`} target="_blank" rel="noopener noreferrer">
                               <Download className="mr-2 h-4 w-4" /> Download PDF
                             </a>
                           </Button>

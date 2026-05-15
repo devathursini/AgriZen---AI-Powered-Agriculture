@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useRef } from "react";
@@ -377,7 +376,7 @@ export default function DiagnosisPage() {
                         variant="accent" 
                         className="w-full font-bold h-12"
                       >
-                        <a href={reportUrl} target="_blank" rel="noopener noreferrer">
+                        <a href={reportUrl} download={`agrizen-diagnosis-${Date.now()}.pdf`} target="_blank" rel="noopener noreferrer">
                           <Download className="mr-2 h-4 w-4" /> Download PDF Diagnosis
                         </a>
                       </Button>

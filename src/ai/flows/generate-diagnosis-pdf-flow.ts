@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview A Genkit flow for generating a professional PDF report specifically for a crop diagnosis.
@@ -48,13 +47,18 @@ const generateDiagnosisPdfTool = ai.defineTool(
   async (input) => {
     console.log(`Generating Real Diagnosis PDF for: ${input.plantName}`);
     
-    const doc = new jsPDF();
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4'
+    });
+    
     const margin = 20;
     const pageWidth = doc.internal.pageSize.getWidth();
     let y = 20;
 
     // Header
-    doc.setTextColor(0, 255, 102); // AgriZen Green
+    doc.setTextColor(0, 200, 80); // AgriZen Green
     doc.setFontSize(22);
     doc.text('AGRIZEN AI', pageWidth / 2, y, { align: 'center' });
     y += 10;
@@ -69,7 +73,7 @@ const generateDiagnosisPdfTool = ai.defineTool(
     doc.text(`Generated: ${new Date().toLocaleString()}`, pageWidth - margin, y, { align: 'right' });
     y += 5;
     
-    doc.setDrawColor(0, 255, 102);
+    doc.setDrawColor(0, 200, 80);
     doc.setLineWidth(0.5);
     doc.line(margin, y, pageWidth - margin, y);
     y += 15;
