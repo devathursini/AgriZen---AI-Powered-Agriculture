@@ -1,7 +1,7 @@
-
 "use client";
 
 import { useState, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { 
   Camera, 
   Upload, 
@@ -12,7 +12,8 @@ import {
   X,
   RefreshCw,
   FileText,
-  LogIn
+  LogIn,
+  History
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -36,6 +37,7 @@ export default function DiagnosisPage() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   
+  const router = useRouter();
   const { user } = useUser();
   const auth = useAuth();
   const db = useFirestore();
@@ -85,6 +87,11 @@ export default function DiagnosisPage() {
     } catch (err) {
       console.error("Camera access denied", err);
       setShowCamera(false);
+      toast({
+        variant: "destructive",
+        title: "Camera Error",
+        description: "Could not access the camera. Please check permissions."
+      });
     }
   };
 
@@ -95,7 +102,7 @@ export default function DiagnosisPage() {
         canvasRef.current.width = videoRef.current.videoWidth;
         canvasRef.current.height = videoRef.current.videoHeight;
         context.drawImage(videoRef.current, 0, 0);
-        const dataUri = canvasRef.current.toDataURL("image/jpeg");
+        const dataUri = canvasRef.current.toDataURL("image/jpeg", 0.8); // Use 0.8 quality to reduce size
         setImage(dataUri);
         setShowCamera(false);
         const stream = videoRef.current.srcObject as MediaStream;
@@ -155,16 +162,36 @@ export default function DiagnosisPage() {
       .then(() => {
         toast({
           title: "Report Saved",
-          description: "Diagnosis has been stored in your AgriZen history."
+          description: "Diagnosis has been stored in your AgriZen history.",
+          action: (
+            <Button variant="outline" size="sm" onClick={() => router.push('/diagnosis/history')}>
+              View History
+            </Button>
+          )
         });
       })
       .catch(async (error) => {
-        const permissionError = new FirestorePermissionError({
-          path: "diagnoses",
-          operation: "create",
-          requestResourceData: diagnosisData,
-        });
-        errorEmitter.emit("permission-error", permissionError);
+        console.error("Firestore Save Error:", error);
+        if (error.code === 'permission-denied') {
+          const permissionError = new FirestorePermissionError({
+            path: "diagnoses",
+            operation: "create",
+            requestResourceData: diagnosisData,
+          });
+          errorEmitter.emit("permission-error", permissionError);
+        } else if (error.message?.includes('too large')) {
+          toast({
+            variant: "destructive",
+            title: "Data Too Large",
+            description: "The image size exceeds Firestore limits. Try a smaller photo."
+          });
+        } else {
+          toast({
+            variant: "destructive",
+            title: "Save Failed",
+            description: error.message || "An unexpected error occurred."
+          });
+        }
       })
       .finally(() => {
         setSaving(false);
@@ -178,11 +205,16 @@ export default function DiagnosisPage() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="font-headline text-4xl font-bold text-foreground">
-          AgriZen <span className="text-primary">Vision Diagnosis</span>
-        </h1>
-        <p className="text-muted-foreground">High-precision AI analysis for crop diseases and pests</p>
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div>
+          <h1 className="font-headline text-4xl font-bold text-foreground">
+            AgriZen <span className="text-primary">Vision Diagnosis</span>
+          </h1>
+          <p className="text-muted-foreground">High-precision AI analysis for crop diseases and pests</p>
+        </div>
+        <Button variant="outline" className="border-white/10" onClick={() => router.push('/diagnosis/history')}>
+          <History className="mr-2 h-4 w-4" /> View History
+        </Button>
       </div>
 
       <div className="grid gap-8 lg:grid-cols-2">

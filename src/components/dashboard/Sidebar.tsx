@@ -23,7 +23,8 @@ import {
   RefreshCw,
   Plane,
   Key,
-  PlayCircle
+  PlayCircle,
+  History
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth, useUser } from "@/firebase";
@@ -37,8 +38,9 @@ import React, { useState } from "react";
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
-  { icon: Dna, label: "Crop Diagnosis", href: "/diagnosis" },
-  { icon: FileText, label: "Reports", href: "/reports" },
+  { icon: Dna, label: "New Diagnosis", href: "/diagnosis" },
+  { icon: History, label: "Diagnosis History", href: "/diagnosis/history" },
+  { icon: FileText, label: "Farm Reports", href: "/reports" },
   { icon: Plane, label: "Drone Control", href: "/drones" },
   { icon: Bot, label: "AI Assistant", href: "/assistant" },
   { icon: BarChart3, label: "Analytics", href: "/analytics" },
