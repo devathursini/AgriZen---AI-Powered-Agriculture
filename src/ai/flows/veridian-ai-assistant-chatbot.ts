@@ -17,8 +17,8 @@ const VeridianAIAssistantChatbotInputSchema = z.object({
   query: z.string().describe('The current message or question from the farmer.'),
   history: z.array(
     z.object({
-      role: z.enum(['user', 'model']),
-      parts: z.array(z.object({text: z.string()})),
+      role: z.enum(['user', 'model', 'system']),
+      content: z.array(z.object({text: z.string()})),
     })
   ).optional().describe('Previous conversation turns for context-awareness.'),
 });
@@ -41,10 +41,10 @@ const veridianAIAssistantChatbotFlow = ai.defineFlow(
     outputSchema: VeridianAIAssistantChatbotOutputSchema,
   },
   async (input) => {
-    const messages = [
+    const messages: any[] = [
       {
         role: 'system',
-        parts: [{
+        content: [{
           text: `You are an intelligent agriculture chatbot named Veridian Assistant. Your goal is to provide comprehensive and helpful advice to farmers on a wide range of topics including crop guidance, farming tips, fertilizer suggestions, disease explanations, irrigation guidance, pest control advice, weather-based recommendations, smart farming guidance, yield suggestions, and market advice. You are context-aware and can maintain multi-turn conversations. You can respond in English or Tamil, depending on the user's query.`
         }]
       },
@@ -56,22 +56,21 @@ const veridianAIAssistantChatbotFlow = ai.defineFlow(
 
     messages.push({
       role: 'user',
-      parts: [{ text: input.query }]
+      content: [{ text: input.query }]
     });
 
     const result = await ai.generate({
-      // Using the default model set in genkit.ts, which is 'googleai/gemini-2.5-flash'
       messages: messages,
       config: {
-        maxOutputTokens: 1024, // Reasonable limit for chat responses
-        temperature: 0.7, // Balances creativity and factual accuracy
+        maxOutputTokens: 1024,
+        temperature: 0.7,
       },
     });
 
-    if (!result.output) {
-      throw new Error('No output received from the AI model.');
+    if (!result || !result.text) {
+      throw new Error('No text output received from the AI model.');
     }
 
-    return { response: result.output.text! };
+    return { response: result.text };
   }
 );

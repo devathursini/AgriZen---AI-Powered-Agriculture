@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useRef, useEffect } from "react";
@@ -6,25 +5,19 @@ import {
   Send, 
   Bot, 
   User, 
-  Sparkles, 
-  Mic, 
-  Globe, 
-  MoreHorizontal,
-  ChevronRight,
   Plus,
-  AlertCircle
+  Mic, 
+  Globe
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { veridianAIAssistantChatbot } from "@/ai/flows/veridian-ai-assistant-chatbot";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
 type Message = {
   role: 'user' | 'model';
-  parts: { text: string }[];
+  content: { text: string }[];
 };
 
 export default function AssistantPage() {
@@ -41,19 +34,20 @@ export default function AssistantPage() {
   }, [messages, loading]);
 
   const handleSend = async () => {
-    if (!input.trim() || loading) return;
+    const textToSend = input.trim();
+    if (!textToSend || loading) return;
 
-    const userMessage: Message = { role: 'user', parts: [{ text: input }] };
+    const userMessage: Message = { role: 'user', content: [{ text: textToSend }] };
     setMessages(prev => [...prev, userMessage]);
     setInput("");
     setLoading(true);
 
     try {
       const response = await veridianAIAssistantChatbot({
-        query: input,
+        query: textToSend,
         history: messages
       });
-      const modelMessage: Message = { role: 'model', parts: [{ text: response.response }] };
+      const modelMessage: Message = { role: 'model', content: [{ text: response.response }] };
       setMessages(prev => [...prev, modelMessage]);
     } catch (err: any) {
       console.error(err);
@@ -65,7 +59,7 @@ export default function AssistantPage() {
 
       setMessages(prev => [...prev, {
         role: 'model',
-        parts: [{ text: errorMessage }]
+        content: [{ text: errorMessage }]
       }]);
 
       toast({
@@ -133,9 +127,9 @@ export default function AssistantPage() {
               </div>
               <div className={cn(
                 "max-w-[80%] rounded-2xl p-4 text-sm leading-relaxed",
-                msg.role === 'model' ? (msg.parts[0].text.includes("Gemini API key") ? "bg-destructive/10 text-destructive border border-destructive/20" : "bg-white/5 text-foreground") : "bg-primary text-primary-foreground font-medium"
+                msg.role === 'model' ? (msg.content[0].text.includes("Gemini API key") ? "bg-destructive/10 text-destructive border border-destructive/20" : "bg-white/5 text-foreground") : "bg-primary text-primary-foreground font-medium"
               )}>
-                {msg.parts[0].text}
+                {msg.content[0].text}
               </div>
             </div>
           ))}
