@@ -18,13 +18,15 @@ import {
   Dna,
   FileText,
   LogIn,
-  Loader2
+  Loader2,
+  AlertCircle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth, useUser } from "@/firebase";
 import { signInWithPopup, GoogleAuthProvider, signOut } from "firebase/auth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/" },
@@ -43,13 +45,27 @@ export function Sidebar() {
   const pathname = usePathname();
   const { user, loading } = useUser();
   const auth = useAuth();
+  const { toast } = useToast();
 
   const handleSignIn = async () => {
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Sign in failed", error);
+      
+      let message = "Could not complete sign in.";
+      if (error.code === 'auth/auth-domain-config-required' || error.message?.includes('identitytoolkit')) {
+        message = "Firebase Auth is not fully configured. Please enable the Identity Toolkit API and add your Auth Domain to the .env file.";
+      } else if (error.code === 'auth/operation-not-allowed') {
+        message = "Google Sign-In is not enabled in your Firebase Console.";
+      }
+
+      toast({
+        variant: "destructive",
+        title: "Authentication Error",
+        description: message,
+      });
     }
   };
 
@@ -138,13 +154,21 @@ export function Sidebar() {
             </div>
           </div>
         ) : (
-          <Button 
-            onClick={handleSignIn}
-            variant="outline" 
-            className="w-full border-primary/20 text-primary hover:bg-primary/10 font-bold"
-          >
-            <LogIn className="mr-2 h-4 w-4" /> Sign In
-          </Button>
+          <div className="space-y-2">
+            {!process.env.NEXT_PUBLIC_FIREBASE_API_KEY || process.env.NEXT_PUBLIC_FIREBASE_API_KEY === 'YOUR_FIREBASE_API_KEY' ? (
+              <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-[10px] text-destructive flex items-start gap-2">
+                <AlertCircle className="h-3 w-3 shrink-0 mt-0.5" />
+                <p>Firebase configuration missing in .env</p>
+              </div>
+            ) : null}
+            <Button 
+              onClick={handleSignIn}
+              variant="outline" 
+              className="w-full border-primary/20 text-primary hover:bg-primary/10 font-bold"
+            >
+              <LogIn className="mr-2 h-4 w-4" /> Sign In
+            </Button>
+          </div>
         )}
       </div>
     </div>
