@@ -1,9 +1,8 @@
-
 "use client";
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Sprout, LogIn, Loader2, AlertCircle, Key, ExternalLink, RefreshCw, CheckCircle2 } from "lucide-react";
+import { Sprout, LogIn, Loader2, AlertCircle, Key, ExternalLink, RefreshCw, CheckCircle2, PlayCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useAuth, useUser } from "@/firebase";
@@ -13,7 +12,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import Link from "next/link";
 
 export default function LoginPage() {
-  const { user, loading } = useUser();
+  const { user, loading, enterDemoMode } = useUser();
   const auth = useAuth();
   const router = useRouter();
   const { toast } = useToast();
@@ -60,6 +59,15 @@ export default function LoginPage() {
     }
   };
 
+  const handleDemoAccess = () => {
+    enterDemoMode();
+    toast({
+      title: "Demo Mode Active",
+      description: "Welcome to AgriZen AI! Exploring with demo credentials.",
+    });
+    router.push("/dashboard");
+  };
+
   if (loading) return null;
 
   return (
@@ -89,51 +97,35 @@ export default function LoginPage() {
                 <div className="space-y-2">
                   <AlertTitle className="text-xs font-bold uppercase tracking-wider">PROJECT KEY RESTRICTED</AlertTitle>
                   <AlertDescription className="text-[11px] leading-relaxed">
-                    Google is blocking this request because the <strong>Identity Toolkit API</strong> is not allowed on your API key.
+                    Google is blocking authentication requests. You can fix this in the console or use **Demo Mode** to explore.
                   </AlertDescription>
                 </div>
               </Alert>
 
               <div className="p-4 rounded-xl bg-white/5 border border-white/10 space-y-4">
-                <h4 className="text-xs font-bold uppercase tracking-widest text-primary flex items-center gap-2">
-                  <CheckCircle2 className="h-3 w-3" /> Step-by-Step Fix
-                </h4>
-                <div className="space-y-3">
-                  <div className="flex flex-col gap-1">
-                    <p className="text-[10px] text-muted-foreground uppercase">1. Edit API Key</p>
-                    <a 
-                      href="https://console.cloud.google.com/apis/credentials" 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-between p-2 rounded bg-black/40 border border-white/5 hover:border-primary/50 text-xs font-bold text-white transition-all group"
-                    >
-                      Open Credentials Console <ExternalLink className="h-3 w-3 group-hover:text-primary" />
-                    </a>
-                    <p className="text-[9px] text-muted-foreground mt-1">
-                      Find your key (likely named "Browser key"), click it, and set <strong>API Restrictions</strong> to "Don't restrict" OR add "Identity Toolkit API".
-                    </p>
-                  </div>
-
-                  <div className="flex flex-col gap-1">
-                    <p className="text-[10px] text-muted-foreground uppercase">2. Enable Provider</p>
-                    <a 
-                      href={`https://console.firebase.google.com/project/${projectId}/authentication/providers`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-between p-2 rounded bg-black/40 border border-white/5 hover:border-primary/50 text-xs font-bold text-white transition-all group"
-                    >
-                      Enable Google Sign-In <ExternalLink className="h-3 w-3 group-hover:text-primary" />
-                    </a>
-                  </div>
-                </div>
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  className="w-full text-xs h-10 border-primary/20 hover:bg-primary text-white"
-                  onClick={() => window.location.reload()}
+                 <Button 
+                  onClick={handleDemoAccess}
+                  className="w-full bg-accent text-accent-foreground font-bold"
                 >
-                  <RefreshCw className="mr-2 h-3 w-3" /> I've done this, refresh now
+                  <PlayCircle className="mr-2 h-5 w-5" /> Start Instant Demo
                 </Button>
+                
+                <div className="flex items-center gap-2 py-2">
+                  <div className="h-px flex-1 bg-white/5" />
+                  <span className="text-[10px] text-muted-foreground uppercase">Or Manual Fix</span>
+                  <div className="h-px flex-1 bg-white/5" />
+                </div>
+
+                <div className="space-y-3">
+                  <a 
+                    href="https://console.cloud.google.com/apis/credentials" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-between p-2 rounded bg-black/40 border border-white/5 hover:border-primary/50 text-xs font-bold text-white transition-all group"
+                  >
+                    Open Credentials Console <ExternalLink className="h-3 w-3 group-hover:text-primary" />
+                  </a>
+                </div>
               </div>
             </div>
           ) : (
@@ -151,6 +143,14 @@ export default function LoginPage() {
                 ) : (
                   <><LogIn className="mr-2 h-5 w-5" /> Sign In with Google</>
                 )}
+              </Button>
+              
+              <Button 
+                onClick={handleDemoAccess}
+                variant="outline"
+                className="w-full h-12 border-accent/20 text-accent hover:bg-accent hover:text-accent-foreground font-bold"
+              >
+                <PlayCircle className="mr-2 h-5 w-5" /> Explore Demo Mode
               </Button>
             </div>
           )}

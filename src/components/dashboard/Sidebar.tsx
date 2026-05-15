@@ -1,8 +1,7 @@
-
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { 
   LayoutDashboard, 
   Bot, 
@@ -23,7 +22,8 @@ import {
   ExternalLink,
   RefreshCw,
   Plane,
-  Key
+  Key,
+  PlayCircle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth, useUser } from "@/firebase";
@@ -50,12 +50,13 @@ const menuItems = [
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { user, loading } = useUser();
+  const router = useRouter();
+  const { user, loading, exitDemoMode } = useUser();
   const auth = useAuth();
   const { toast } = useToast();
   const [authError, setAuthError] = useState<string | null>(null);
 
-  const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "studio-4318523135-2e5de";
+  const isDemo = typeof window !== 'undefined' && localStorage.getItem('agrizen_demo_mode') === 'true';
 
   const handleSignIn = async () => {
     setAuthError(null);
@@ -74,7 +75,7 @@ export function Sidebar() {
         toast({
           variant: "destructive",
           title: "Setup Required",
-          description: "API key or Identity Toolkit is restricted. Check the sidebar guide.",
+          description: "API key is restricted. Use Demo Mode or check the cloud console.",
         });
         return;
       }
@@ -88,6 +89,11 @@ export function Sidebar() {
   };
 
   const handleSignOut = async () => {
+    if (isDemo) {
+      exitDemoMode();
+      router.push("/login");
+      return;
+    }
     try {
       await signOut(auth);
     } catch (error) {
@@ -107,6 +113,12 @@ export function Sidebar() {
       </Link>
 
       <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4">
+        {isDemo && (
+          <Badge className="w-full bg-accent/20 text-accent border-accent/30 py-2 justify-center gap-2 mb-4">
+            <PlayCircle className="h-3 w-3" /> DEMO ACCESS ACTIVE
+          </Badge>
+        )}
+
         {authError === "identity-blocked" && (
           <Alert variant="destructive" className="bg-destructive/10 border-destructive/20 mb-4 animate-in fade-in slide-in-from-top-4 duration-500">
             <AlertCircle className="h-4 w-4 shrink-0" />
@@ -122,16 +134,6 @@ export function Sidebar() {
                     className="flex items-center justify-between text-destructive underline font-bold group hover:text-white transition-colors"
                   >
                     1. Check Key Restrictions <Key className="h-2.5 w-2.5" />
-                  </a>
-                  <p className="text-[8px] opacity-70 mb-1 ml-1 leading-tight">Add "Identity Toolkit API" to your key's allowed list.</p>
-
-                  <a 
-                    href={`https://console.firebase.google.com/project/${projectId}/authentication/providers`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-between text-destructive underline font-bold group hover:text-white transition-colors mt-1"
-                  >
-                    2. Enable Google Provider <ExternalLink className="h-2.5 w-2.5" />
                   </a>
                 </div>
                 <Button 
@@ -196,7 +198,7 @@ export function Sidebar() {
               className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all"
             >
               <LogOut className="h-5 w-5" />
-              Logout
+              {isDemo ? "Exit Demo Mode" : "Logout"}
             </button>
           </div>
         ) : (
@@ -209,9 +211,6 @@ export function Sidebar() {
             >
               <Link href="/login"><LogIn className="mr-2 h-4 w-4" /> Sign In</Link>
             </Button>
-            <p className="text-[9px] text-muted-foreground text-center px-2">
-              Sync farm data to the AgriZen cloud.
-            </p>
           </div>
         )}
       </div>
