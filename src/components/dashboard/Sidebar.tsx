@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -51,7 +50,7 @@ export function Sidebar() {
   const { toast } = useToast();
   const [authError, setAuthError] = useState<string | null>(null);
 
-  const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
+  const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "studio-4318523135-2e5de";
 
   const handleSignIn = async () => {
     setAuthError(null);
@@ -61,7 +60,9 @@ export function Sidebar() {
     } catch (error: any) {
       console.error("Sign in failed", error);
       
-      const isIdentityBlocked = error.message?.includes('identitytoolkit') || error.code?.includes('api-blocked');
+      const isIdentityBlocked = error.message?.toLowerCase().includes('identitytoolkit') || 
+                                error.code?.includes('api-blocked') ||
+                                error.message?.toLowerCase().includes('blocked');
       
       if (isIdentityBlocked) {
         setAuthError("identity-blocked");
@@ -109,12 +110,12 @@ export function Sidebar() {
 
       <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4">
         {authError === "identity-blocked" && (
-          <Alert variant="destructive" className="bg-destructive/10 border-destructive/20 mb-4">
+          <Alert variant="destructive" className="bg-destructive/10 border-destructive/20 mb-4 animate-in fade-in slide-in-from-top-4 duration-500">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle className="text-xs font-bold uppercase tracking-wider">API Blocked</AlertTitle>
-            <AlertDescription className="text-[10px] space-y-2">
-              <p>Identity Toolkit API is disabled.</p>
-              <Button variant="link" className="p-0 h-auto text-[10px] text-destructive underline" asChild>
+            <AlertDescription className="text-[10px] space-y-2 mt-1">
+              <p>Identity Toolkit API is disabled for this project.</p>
+              <Button variant="link" className="p-0 h-auto text-[10px] text-destructive underline font-bold" asChild>
                 <a 
                   href={`https://console.cloud.google.com/apis/library/identitytoolkit.googleapis.com?project=${projectId}`} 
                   target="_blank" 

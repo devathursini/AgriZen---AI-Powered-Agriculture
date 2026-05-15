@@ -10,22 +10,32 @@ To enable crop diagnosis and the AI assistant:
 4. Set `GEMINI_API_KEY=your_key_here`.
 
 ## 2. Firebase Setup (Authentication & Reports)
-To enable user login and saving reports:
-1. Go to the [Firebase Console](https://console.firebase.google.com/).
-2. Select your project: **studio-4318523135-2e5de**.
-3. **CRITICAL STEP**: Enable the Identity Toolkit API. Click this link: [Enable Identity Toolkit API](https://console.cloud.google.com/apis/library/identitytoolkit.googleapis.com?project=studio-4318523135-2e5de).
-4. Navigate to **Authentication** > **Sign-in method**.
-5. Click **Add new provider** and select **Google**. Enable it and save.
-6. Navigate to **Project Settings** (gear icon) > **General**.
-7. Copy the configuration object and update these values in your `.env` file:
+To enable user login and saving reports, you must complete these **three** steps:
+
+### A. Enable Identity Toolkit API (The "Blocked" Error Fix)
+This is the most common cause of the "Requests to this API are blocked" error.
+1. Click this link: [Enable Identity Toolkit API](https://console.cloud.google.com/apis/library/identitytoolkit.googleapis.com?project=studio-4318523135-2e5de).
+2. Click the **ENABLE** button.
+
+### B. Enable Google Sign-In Provider
+1. Go to the [Firebase Console](https://console.firebase.google.com/project/studio-4318523135-2e5de/authentication/providers).
+2. Click **Add new provider**.
+3. Select **Google**, enable it, and click **Save**.
+
+### C. Update Environment Variables
+1. Go to [Project Settings](https://console.firebase.google.com/project/studio-4318523135-2e5de/settings/general).
+2. Scroll down to **Your apps** and copy the configuration object.
+3. Update your `.env` file with:
    - `NEXT_PUBLIC_FIREBASE_API_KEY`
    - `NEXT_PUBLIC_FIREBASE_PROJECT_ID`
    - `NEXT_PUBLIC_FIREBASE_APP_ID`
-8. Enable **Firestore**:
-   - Go to **Firestore Database** > **Create database**.
-   - Start in **test mode** (for development) and select a location.
 
-## 3. Development
+## 3. Enable Firestore Database
+1. Go to [Firestore Database](https://console.firebase.google.com/project/studio-4318523135-2e5de/firestore).
+2. Click **Create database**.
+3. Start in **test mode** (for development) and select a location.
+
+## 4. Development
 Run the app locally:
 ```bash
 npm run dev
