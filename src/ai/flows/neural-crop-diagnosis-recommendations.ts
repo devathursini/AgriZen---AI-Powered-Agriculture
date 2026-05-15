@@ -123,10 +123,10 @@ const neuralCropDiagnosisRecommendationsFlow = ai.defineFlow(
           const attempt = 5 - retries;
           retries--;
           
-          // Exponential backoff: Starts at 10s, grows to 80s
+          // Exponential backoff: Wait longer with each attempt
           const waitTime = isRateLimit ? 10000 * Math.pow(2, attempt) : 2000;
           
-          console.log(`AgriZen Neural Link: Quota or overload detected. Retrying in ${waitTime}ms... (${retries + 1} attempts left)`);
+          console.log(`AgriZen Neural Link (Diagnosis): Quota or overload detected. Retrying in ${waitTime}ms... (${retries + 1} attempts left)`);
           await new Promise(resolve => setTimeout(resolve, waitTime));
           continue;
         }

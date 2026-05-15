@@ -1,17 +1,11 @@
 'use server';
 /**
  * @fileOverview This file implements the Genkit flow for the AgriZen AI Assistant Chatbot.
- * It provides an intelligent, context-aware, and multi-lingual chatbot for farmers.
- *
- * - veridianAIAssistantChatbot - A function that handles the chatbot interaction.
- * - VeridianAIAssistantChatbotInput - The input type for the veridianAIAssistantChatbot function.
- * - VeridianAIAssistantChatbotOutput - The return type for the veridianAIAssistantChatbot function.
  */
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
-// Input Schema for the chatbot
 const VeridianAIAssistantChatbotInputSchema = z.object({
   query: z.string().describe('The current message or question from the farmer.'),
   history: z.array(
@@ -23,9 +17,8 @@ const VeridianAIAssistantChatbotInputSchema = z.object({
 });
 export type VeridianAIAssistantChatbotInput = z.infer<typeof VeridianAIAssistantChatbotInputSchema>;
 
-// Output Schema for the chatbot's response
 const VeridianAIAssistantChatbotOutputSchema = z.object({
-  response: z.string().describe('The intelligent, context-aware, and multi-lingual farming advice from the AI assistant.'),
+  response: z.string().describe('The intelligent farming advice from the AI assistant.'),
 });
 export type VeridianAIAssistantChatbotOutput = z.infer<typeof VeridianAIAssistantChatbotOutputSchema>;
 
@@ -58,30 +51,50 @@ const veridianAIAssistantChatbotFlow = ai.defineFlow(
       content: [{ text: input.query }]
     });
 
-    try {
-      const response = await ai.generate({
-        messages: messages,
-        config: {
-          maxOutputTokens: 1024,
-          temperature: 0.7,
-        },
-      });
+    let retries = 5;
+    let lastError: any;
 
-      if (!response || !response.text) {
-        throw new Error('No response from AI model.');
-      }
+    while (retries >= 0) {
+      try {
+        const response = await ai.generate({
+          messages: messages,
+          config: {
+            maxOutputTokens: 1024,
+            temperature: 0.7,
+          },
+        });
 
-      return { response: response.text };
-    } catch (error: any) {
-      console.error('Genkit Generate Error:', error);
-      
-      if (error.message?.includes('API key not valid') || error.message?.includes('400')) {
-        return { 
-          response: "AgriZen Assistant is currently configuring its neural link (Invalid or restricted API Key). Please ensure the API key in .env is correct for Google AI Studio." 
-        };
+        if (!response || !response.text) {
+          throw new Error('No response from AI model.');
+        }
+
+        return { response: response.text };
+      } catch (error: any) {
+        lastError = error;
+        const errMsg = error.message?.toLowerCase() || "";
+        
+        const isRateLimit = errMsg.includes('429') || errMsg.includes('quota') || errMsg.includes('rate limit') || errMsg.includes('exhausted');
+        const isOverload = errMsg.includes('503') || errMsg.includes('unavailable') || errMsg.includes('high demand');
+
+        if ((isRateLimit || isOverload) && retries > 0) {
+          const attempt = 5 - retries;
+          retries--;
+          const waitTime = isRateLimit ? 10000 * Math.pow(2, attempt) : 2000;
+          
+          console.log(`AgriZen Neural Link (Chat): Quota or overload detected. Retrying in ${waitTime}ms... (${retries + 1} attempts left)`);
+          await new Promise(resolve => setTimeout(resolve, waitTime));
+          continue;
+        }
+
+        if (error.message?.includes('API key not valid') || error.message?.includes('400')) {
+          return { 
+            response: "AgriZen Assistant is currently configuring its neural link (Invalid or restricted API Key). Please ensure the API key in .env is correct." 
+          };
+        }
+        
+        throw error;
       }
-      
-      throw error;
     }
+    throw lastError;
   }
 );
