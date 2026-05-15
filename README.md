@@ -25,10 +25,7 @@ This is the most common cause of the "Requests to this API are blocked" error.
 ### C. Update Environment Variables
 1. Go to [Project Settings](https://console.firebase.google.com/project/studio-4318523135-2e5de/settings/general).
 2. Scroll down to **Your apps** and copy the configuration object.
-3. Update your `.env` file with:
-   - `NEXT_PUBLIC_FIREBASE_API_KEY`
-   - `NEXT_PUBLIC_FIREBASE_PROJECT_ID`
-   - `NEXT_PUBLIC_FIREBASE_APP_ID`
+3. Update your `.env` file with your specific values.
 
 ## 3. Enable Firestore Database
 1. Go to [Firestore Database](https://console.firebase.google.com/project/studio-4318523135-2e5de/firestore).
