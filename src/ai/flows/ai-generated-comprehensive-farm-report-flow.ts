@@ -52,7 +52,7 @@ const ComprehensiveFarmReportOutputSchema = z.object({
 });
 export type ComprehensiveFarmReportOutput = z.infer<typeof ComprehensiveFarmReportOutputSchema>;
 
-// Mock PDF generation tool
+// Mock PDF generation tool - now returns a functional sample PDF URL
 const generatePdfReportTool = ai.defineTool(
   {
     name: 'generatePdfReport',
@@ -68,10 +68,9 @@ const generatePdfReportTool = ai.defineTool(
     outputSchema: z.string().url().describe('The URL to the generated PDF report.'),
   },
   async (input) => {
-    const mockReportId = `agrizen-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-    const mockReportUrl = `https://agrizen.ai/reports/${mockReportId}.pdf`;
     console.log(`Simulating AgriZen AI PDF report generation for: ${input.reportTitle}`);
-    return mockReportUrl;
+    // Using a reliable public sample PDF URL for demonstration
+    return "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf";
   }
 );
 
