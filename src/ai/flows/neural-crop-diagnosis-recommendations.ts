@@ -10,8 +10,6 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
-export const maxDuration = 120; // Extend timeout for long AI generations
-
 const NeuralCropDiagnosisRecommendationsInputSchema = z.object({
   photoDataUri: z
     .string()

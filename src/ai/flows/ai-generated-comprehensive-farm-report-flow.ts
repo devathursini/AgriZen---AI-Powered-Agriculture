@@ -7,8 +7,6 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import { jsPDF } from 'jspdf';
 
-export const maxDuration = 120; // Extend timeout for long AI generations
-
 // Input Schema
 const ComprehensiveFarmReportInputSchema = z.object({
   farmerName: z.string().describe('Name of the farmer.'),

@@ -6,8 +6,6 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
-export const maxDuration = 120; // Extend timeout for long AI generations
-
 const VeridianAIAssistantChatbotInputSchema = z.object({
   query: z.string().describe('The current message or question from the farmer.'),
   history: z.array(
