@@ -373,7 +373,7 @@ export default function DiagnosisPage() {
                     {reportUrl && (
                       <Button 
                         asChild 
-                        variant="accent" 
+                        variant="default" 
                         className="w-full font-bold h-12"
                       >
                         <a href={reportUrl} download={`agrizen-diagnosis-${Date.now()}.pdf`} target="_blank" rel="noopener noreferrer">

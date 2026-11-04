@@ -138,7 +138,7 @@ export default function DiagnosisHistoryPage() {
                     <div className="flex items-center justify-between mt-2">
                       <div className="flex gap-2">
                         {d.reportUrl && (
-                          <Button variant="accent" size="sm" asChild>
+                          <Button variant="default" size="sm" asChild>
                             <a href={d.reportUrl} download={`agrizen-diagnosis-${d.id}.pdf`} target="_blank" rel="noopener noreferrer">
                               <Download className="mr-2 h-4 w-4" /> Download PDF
                             </a>

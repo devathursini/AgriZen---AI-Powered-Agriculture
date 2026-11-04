@@ -11,7 +11,7 @@ const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "studio-4318523
 
 export const firebaseConfig = {
   // Use provided key as primary, fallback to env
-  apiKey: "AIzaSyCKcMp5qt7lYNSI6x85IoAl-SZCOJg-jNw" || process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || (projectId ? `${projectId}.firebaseapp.com` : undefined),
   projectId: projectId,
   storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || (projectId ? `${projectId}.firebasestorage.app` : undefined),
