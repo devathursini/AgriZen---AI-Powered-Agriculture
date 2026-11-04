@@ -1,10 +1,6 @@
 'use server';
 /**
  * @fileOverview An AI agent for detecting crop diseases and pests, providing diagnosis and treatment recommendations.
- *
- * - neuralCropDiagnosisRecommendations - A function that handles the crop disease/pest diagnosis process.
- * - NeuralCropDiagnosisRecommendationsInput - The input type for the neuralCropDiagnosisRecommendations function.
- * - NeuralCropDiagnosisRecommendationsOutput - The return type for the neuralCropDiagnosisRecommendations function.
  */
 
 import {ai} from '@/ai/genkit';
@@ -120,15 +116,12 @@ const neuralCropDiagnosisRecommendationsFlow = ai.defineFlow(
         lastError = err;
         const errMsg = err.message?.toLowerCase() || "";
         
-        // Detect transient errors: 429 (Rate Limit), 503 (Overload), or quota exhaustion
         const isRateLimit = errMsg.includes('429') || errMsg.includes('quota') || errMsg.includes('rate limit') || errMsg.includes('exhausted');
         const isOverload = errMsg.includes('503') || errMsg.includes('unavailable') || errMsg.includes('high demand');
 
         if ((isRateLimit || isOverload) && retries > 0) {
           const attempt = 5 - retries;
           retries--;
-          
-          // Exponential backoff: Wait longer with each attempt
           const waitTime = isRateLimit ? 10000 * Math.pow(2, attempt) : 2000;
           
           console.log(`AgriZen Neural Link (Diagnosis): Quota or overload detected. Retrying in ${waitTime}ms... (${retries + 1} attempts left)`);

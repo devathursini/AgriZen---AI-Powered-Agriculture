@@ -163,7 +163,7 @@ Optimized irrigation suggested for current soil moisture. Monitor weather patter
 REPORT END`,
 });
 
-// Define the Genkit flow with robust retry logic
+// Define the Genkit flow with robust retry logic for 429 errors
 const aiGeneratedComprehensiveFarmReportFlow = ai.defineFlow(
   {
     name: 'aiGeneratedComprehensiveFarmReportFlow',
@@ -190,6 +190,7 @@ const aiGeneratedComprehensiveFarmReportFlow = ai.defineFlow(
         if ((isRateLimit || isOverload) && retries > 0) {
           const attempt = 5 - retries;
           retries--;
+          // Exponential backoff
           const waitTime = isRateLimit ? 10000 * Math.pow(2, attempt) : 2000;
           
           console.log(`AgriZen Neural Link (Report Flow): Quota or overload detected. Retrying in ${waitTime}ms... (${retries + 1} attempts left)`);
